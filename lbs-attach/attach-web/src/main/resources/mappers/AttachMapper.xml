@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tarena.lbs.attach.web.mapper.AttachMapper">
+  <resultMap id="BaseResultMap" type="com.tarena.lbs.pojo.attach.dos.Attach">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="file_uuid" jdbcType="VARCHAR" property="fileUuid" />
+    <result column="client_file_name" jdbcType="VARCHAR" property="clientFileName" />
+    <result column="download_times" jdbcType="INTEGER" property="downloadTimes" />
+    <result column="content_length" jdbcType="BIGINT" property="contentLength" />
+    <result column="content_type" jdbcType="INTEGER" property="contentType" />
+    <result column="is_cover" jdbcType="INTEGER" property="isCover" />
+    <result column="width" jdbcType="INTEGER" property="width" />
+    <result column="height" jdbcType="INTEGER" property="height" />
+    <result column="business_type" jdbcType="INTEGER" property="businessType" />
+    <result column="business_id" jdbcType="INTEGER" property="businessId" />
+    <result column="status" jdbcType="TINYINT" property="status" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="gmt_create" jdbcType="BIGINT" property="gmtCreate" />
+    <result column="gmt_modified" jdbcType="BIGINT" property="gmtModified" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, file_uuid, client_file_name, download_times, content_length, content_type, is_cover, 
+    width, height, business_type, business_id, status, remark, gmt_create,
+    gmt_modified
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from attach
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="getAttachInfo" parameterType="com.tarena.lbs.pojo.attach.query.AttachQuery" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from attach
+    where 1=1
+    <if test="businessType != null">
+      and business_type = #{businessType}
+    </if>
+    <if test="businessId != null">
+      and business_id = #{businessId}
+    </if>
+  </select>
+  <select id="batchGetAttachInfo" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from attach
+    where business_id in
+    <foreach collection ="ids" item="item" index="index" separator="," open="(" close=")">
+      #{item}
+    </foreach>
+    and business_type = #{businessType}
+  </select>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tarena.lbs.pojo.attach.dos.Attach" useGeneratedKeys="true">
+    insert into attach (file_uuid, client_file_name, download_times, 
+      content_length, content_type, is_cover, 
+      width, height, business_type, 
+      business_id, status, remark, 
+       gmt_create,
+      gmt_modified
+      )
+    values (#{fileUuid,jdbcType=VARCHAR}, #{clientFileName,jdbcType=VARCHAR}, #{downloadTimes,jdbcType=INTEGER}, 
+      #{contentLength,jdbcType=INTEGER}, #{contentType,jdbcType=VARCHAR}, #{isCover,jdbcType=INTEGER},
+      #{width,jdbcType=INTEGER}, #{height,jdbcType=INTEGER}, #{businessType,jdbcType=INTEGER}, 
+      #{businessId,jdbcType=INTEGER}, #{status,jdbcType=TINYINT}, #{remark,jdbcType=VARCHAR}, 
+      #{gmtCreate,jdbcType=BIGINT},
+      #{gmtModified,jdbcType=BIGINT}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tarena.lbs.pojo.attach.dos.Attach" useGeneratedKeys="true">
+    insert into attach
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="fileUuid != null">
+        file_uuid,
+      </if>
+      <if test="clientFileName != null">
+        client_file_name,
+      </if>
+      <if test="downloadTimes != null">
+        download_times,
+      </if>
+      <if test="contentLength != null">
+        content_length,
+      </if>
+      <if test="contentType != null">
+        content_type,
+      </if>
+      <if test="isCover != null">
+        is_cover,
+      </if>
+      <if test="width != null">
+        width,
+      </if>
+      <if test="height != null">
+        height,
+      </if>
+      <if test="businessType != null">
+        business_type,
+      </if>
+      <if test="businessId != null">
+        business_id,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+
+      <if test="gmtCreate != null">
+        gmt_create,
+      </if>
+
+      <if test="gmtModified != null">
+        gmt_modified,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="fileUuid != null">
+        #{fileUuid,jdbcType=VARCHAR},
+      </if>
+      <if test="clientFileName != null">
+        #{clientFileName,jdbcType=VARCHAR},
+      </if>
+      <if test="downloadTimes != null">
+        #{downloadTimes,jdbcType=INTEGER},
+      </if>
+      <if test="contentLength != null">
+        #{contentLength,jdbcType=INTEGER},
+      </if>
+      <if test="contentType != null">
+        #{contentType,jdbcType=VARCHAR},
+      </if>
+      <if test="isCover != null">
+        #{isCover,jdbcType=INTEGER},
+      </if>
+      <if test="width != null">
+        #{width,jdbcType=INTEGER},
+      </if>
+      <if test="height != null">
+        #{height,jdbcType=INTEGER},
+      </if>
+      <if test="businessType != null">
+        #{businessType,jdbcType=INTEGER},
+      </if>
+      <if test="businessId != null">
+        #{businessId,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=TINYINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="gmtCreate != null">
+        #{gmtCreate,jdbcType=BIGINT},
+      </if>
+      <if test="gmtModified != null">
+        #{gmtModified,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.tarena.lbs.pojo.attach.dos.Attach">
+    update attach
+    <set>
+      <if test="fileUuid != null">
+        file_uuid = #{fileUuid,jdbcType=VARCHAR},
+      </if>
+      <if test="clientFileName != null">
+        client_file_name = #{clientFileName,jdbcType=VARCHAR},
+      </if>
+      <if test="downloadTimes != null">
+        download_times = #{downloadTimes,jdbcType=INTEGER},
+      </if>
+      <if test="contentLength != null">
+        content_length = #{contentLength,jdbcType=BIGINT},
+      </if>
+      <if test="contentType != null">
+        content_type = #{contentType,jdbcType=INTEGER},
+      </if>
+      <if test="isCover != null">
+        is_cover = #{isCover,jdbcType=INTEGER},
+      </if>
+      <if test="width != null">
+        width = #{width,jdbcType=INTEGER},
+      </if>
+      <if test="height != null">
+        height = #{height,jdbcType=INTEGER},
+      </if>
+      <if test="businessType != null">
+        business_type = #{businessType,jdbcType=INTEGER},
+      </if>
+      <if test="businessId != null">
+        business_id = #{businessId,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="gmtCreate != null">
+        gmt_create = #{gmtCreate,jdbcType=BIGINT},
+      </if>
+      <if test="gmtModified != null">
+        gmt_modified = #{gmtModified,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.tarena.lbs.pojo.attach.dos.Attach">
+    update attach
+    set file_uuid = #{fileUuid,jdbcType=VARCHAR},
+      client_file_name = #{clientFileName,jdbcType=VARCHAR},
+      download_times = #{downloadTimes,jdbcType=INTEGER},
+      content_length = #{contentLength,jdbcType=BIGINT},
+      content_type = #{contentType,jdbcType=INTEGER},
+      is_cover = #{isCover,jdbcType=INTEGER},
+      width = #{width,jdbcType=INTEGER},
+      height = #{height,jdbcType=INTEGER},
+      business_type = #{businessType,jdbcType=INTEGER},
+      business_id = #{businessId,jdbcType=INTEGER},
+      status = #{status,jdbcType=TINYINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      gmt_create = #{gmtCreate,jdbcType=BIGINT},
+      gmt_modified = #{gmtModified,jdbcType=BIGINT},
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="batchUpdateAttachByIdList">
+    <foreach collection ="params" item="item" index="index" separator=";" open="" close="">
+      update attach
+      set business_type = #{item.businessType},
+      business_id = #{item.businessId},
+      is_cover = #{item.isCover},
+      gmt_modified = now()
+      where id = #{item.id}
+    </foreach>
+  </update>
+  <delete id="deleteAttachByBusinessIdAndBusinessType" parameterType="com.tarena.lbs.pojo.attach.param.AttachUpdateParam">
+      update attach set  business_id = 0 where business_id = #{businessId} and business_type = #{businessType}
+  </delete>
+
+  <delete id="deleteAttachById" parameterType="com.tarena.lbs.pojo.attach.param.AttachUpdateParam">
+    delete from attach where id = #{id}
+  </delete>
+
+  <update id="batchUpdateAttachStatus">
+      update attach
+      set status = #{status},
+      gmt_modified = now()
+      where id in
+      <foreach collection ="ids" item="item" index="index" separator="," open="(" close=")">
+          #{item}
+      </foreach>
+  </update>
+
+  <!--查询过期未绑定图片-->
+  <select id="getDeprecatedAttachInfo" parameterType="com.tarena.lbs.pojo.attach.query.AttachDeprecatedQuery" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from attach
+    where business_id = 0 and business_type = 0 and gmt_create &lt; #{expired}
+    limit 0,100
+  </select>
+  <delete id="deleteDeprecatedAttaches">
+    delete from attach where id in
+   <foreach collection="list" item="id" open="(" separator="," close=")">
+       #{id}
+   </foreach>
+  </delete>
+  <update id="batchUpdateAttachByIdOrFileUUID">
+    <foreach collection="list" item="item" separator=";">
+      update attach set business_id=#{item.businessId},business_type=#{item.businessType}
+      <where>
+        <if test="item.id != null">
+          and id = #{item.id}
+        </if>
+        <if test="item.fileUuid != null">
+          and file_uuid = #{item.fileUuid}
+        </if>
+      </where>
+    </foreach>
+  </update>
+</mapper>

@@ -1,0 +1,51 @@
+server:
+  port: 9081
+spring:
+  profiles:
+    active: local
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 30MB
+      max-request-size: 300MB
+  application:
+    name: lbs-attach
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+      #静态文件访问地址
+    static-path-pattern: /static/**
+  web:
+    resources:
+      # 静态文件存储地址
+      static-locations: file:${image_path}
+
+mybatis:
+  mapper-locations: classpath*:/**/mappers/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+# 自定义属性
+# 存储路径 用户家目录
+image_path: ${user.home}/home/images/dev/lbs_attach/
+# 访问url前缀
+url: http://localhost:9081/static/
+#配置调度中心属性
+xxl:
+  job:
+    admin:
+      #调度中心连接地址
+      addresses: http://127.0.0.1:8080/xxl-job-admin
+      #连接调度中心 注册 发送请求 权限票据
+    accessToken: default_token
+    executor:
+      #执行器名称 admin存在一个默认执行器 需要在调度中心注册 需要ip和端口
+      appname: delete-attach
+      address:
+      #注册ip 本地就是空
+      ip:
+      #注册端口 需要和admin通信
+      port: 21000
+      #日志路径
+      logpath: /logs
+      #日志保存天数
+      logretentiondays: 30
