@@ -36,8 +36,6 @@ CREATE TABLE `lbs_admin` (
 /*Data for the table `lbs_admin` */
 
 insert  into `lbs_admin`(`id`,`account_phone`,`account_password`,`nickname`,`email`,`business_id`,`account_status`,`account_type`,`create_time`) values (2,'18888888888','123456','平台管理员','yanpengyu5@tedu.cn',0,0,0,'2024-05-07 00:00:00');
-insert  into `lbs_admin`(`id`,`account_phone`,`account_password`,`nickname`,`email`,`business_id`,`account_status`,`account_type`,`create_time`) values (3,'19941253145','123456','闫鹏宇','yanpengyu5@tedu.cn',44,0,1,'2024-05-07 00:00:00');
-insert  into `lbs_admin`(`id`,`account_phone`,`account_password`,`nickname`,`email`,`business_id`,`account_status`,`account_type`,`create_time`) values (4,'15555555555','123456abc','nihao','nihao@qq.com',45,0,1,'2024-07-24 23:02:30');
 
 /*Table structure for table `lbs_area` */
 
@@ -3543,9 +3541,6 @@ CREATE TABLE `lbs_business` (
 
 /*Data for the table `lbs_business` */
 
-insert  into `lbs_business`(`id`,`business_name`,`industry_type`,`business_head_name`,`business_head_phone`,`company_address`,`business_license`,`business_introduction`,`entry_time`,`business_status`,`audit_remarks`,`business_logo`) values (44,'海底捞',89,'XXW','16666666666','北京市海淀区北下关街道中鼎大厦B座','http://localhost:9081/static/861CADADD93744049D915C6180FF81E9.png','海底捞','2024-07-09 15:18:31',2,'同意','http://localhost:9081/static/2FEFF8412F214879A9379DB38F170854.png');
-insert  into `lbs_business`(`id`,`business_name`,`industry_type`,`business_head_name`,`business_head_phone`,`company_address`,`business_license`,`business_introduction`,`entry_time`,`business_status`,`audit_remarks`,`business_logo`) values (45,'东来顺',1,'XXW','18811111111','北京市海淀区北下关街道中鼎大厦B座','http://localhost:9081/static/A69B3D7FCAD8467B9C92640E7312A38F.png','东来顺,中华50年老字号','2024-07-22 15:41:40',2,'同意','http://localhost:9081/static/29B88B3B8B6C477A9098BD3C58BF4A00.png');
-
 /*Table structure for table `lbs_business_category` */
 
 DROP TABLE IF EXISTS `lbs_business_category`;
@@ -3597,8 +3592,6 @@ CREATE TABLE `lbs_store` (
 
 /*Data for the table `lbs_store` */
 
-insert  into `lbs_store`(`id`,`business_id`,`store_name`,`store_phone`,`store_head_name`,`store_head_phone`,`store_location`,`store_longitude`,`store_latitude`,`store_images_id`,`store_logo`,`store_introduction`,`sort`,`trade_time`,`store_status`,`create_time`,`update_time`,`city_id`,`province_id`,`area_id`) values (136,44,'海底捞-世纪金源店','01080998800','XXW','01080998800','北京市海淀区圣熙8号底商1层','116.397428','39.90923',NULL,'773','阿斯蒂芬是',1,'7:00-22:00',0,'2024-07-24 23:00:16','2024-07-24 23:00:16',2,1,8);
-
 /*Table structure for table `lbs_store_chain` */
 
 DROP TABLE IF EXISTS `lbs_store_chain`;
@@ -3614,10 +3607,6 @@ CREATE TABLE `lbs_store_chain` (
 ) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8 COMMENT='链接表';
 
 /*Data for the table `lbs_store_chain` */
-
-insert  into `lbs_store_chain`(`id`,`store_id`,`link`,`link_image`,`link_status`,`create_time`) values (66,127,'https://store.example.com/store?store=store8bd111bd98c241e3835196c3720cd116','http://localhost:9081/static/9c994ccb85734157988a1e43942b2244.png',0,'2024-07-09 15:26:54');
-insert  into `lbs_store_chain`(`id`,`store_id`,`link`,`link_image`,`link_status`,`create_time`) values (67,128,'https://store.example.com/store?store=storef87cf9c11d8648e5a77f70f1eb463feb','http://localhost:9081/static/27e7dd274ce54171a10bc357afea8f76.png',0,'2024-07-09 15:39:54');
-
 /*Table structure for table `lbs_tag_library` */
 
 DROP TABLE IF EXISTS `lbs_tag_library`;
@@ -3689,10 +3678,6 @@ CREATE TABLE `lbs_user` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5107 DEFAULT CHARSET=latin1 COMMENT='用户账号表';
 
 /*Data for the table `lbs_user` */
-
-insert  into `lbs_user`(`id`,`user_name`,`password`,`nick_name`,`ip_address`,`reg_time`,`last_log_time`,`introduction`,`phone`,`provider_type`,`status`,`union_id`,`user_image`) values (5105,'小周','123456','小周',NULL,'2024-07-09 15:34:00','2024-07-09 15:34:00',NULL,'28888888888',NULL,1,'7a3481f9-b614-4b06-b940-a9b42fca6b6d',NULL);
-insert  into `lbs_user`(`id`,`user_name`,`password`,`nick_name`,`ip_address`,`reg_time`,`last_log_time`,`introduction`,`phone`,`provider_type`,`status`,`union_id`,`user_image`) values (5106,'小黄','123456','小黄',NULL,'2024-07-10 10:08:23','2024-07-10 10:08:23',NULL,'22222222222',NULL,1,'48c74f34-bde4-4fe6-8be6-a867ad9133ae',NULL);
-
 /*Table structure for table `lbs_user_group` */
 
 DROP TABLE IF EXISTS `lbs_user_group`;
@@ -3708,9 +3693,6 @@ CREATE TABLE `lbs_user_group` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1 COMMENT='用户群';
 
 /*Data for the table `lbs_user_group` */
-
-insert  into `lbs_user_group`(`id`,`group_name`,`tag_ids`,`user_number`,`business_id`,`create_at`) values (4,'美食爱好者','3',500,36,'2024-07-09 15:27:45');
-
 /*Table structure for table `lbs_user_tag_rules` */
 
 DROP TABLE IF EXISTS `lbs_user_tag_rules`;
@@ -3743,10 +3725,6 @@ CREATE TABLE `lbs_user_tags` (
 ) ENGINE=InnoDB AUTO_INCREMENT=250 DEFAULT CHARSET=latin1 COMMENT='用户标签';
 
 /*Data for the table `lbs_user_tags` */
-
-insert  into `lbs_user_tags`(`id`,`user_id`,`tag_id`) values (248,5105,3);
-insert  into `lbs_user_tags`(`id`,`user_id`,`tag_id`) values (249,5106,3);
-
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
