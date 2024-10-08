@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<interactiveMode>true</interactiveMode>
+	<offline>false</offline>
+	<pluginGroups/>
+	<proxies/>
+	<servers>
+		<server>
+			<id>tedu-releases</id>
+			<!--AD域用户名密码，请替换成自己的账号密码！-->
+			<username>admin</username>
+			<password>nexus-admin</password>
+		</server>
+		<server>
+			<id>tedu-snapshots</id>
+			<!--AD域用户名密码，请替换成自己的账号密码！-->
+			<username>admin</username>
+			<password>nexus-admin</password>
+		</server>
+	</servers>
+	<mirrors>
+		<mirror>
+			<id>ali</id>
+			<name>ali Maven</name>
+			<mirrorOf>*,!tedu-releases,!tedu-snapshots</mirrorOf>
+			<url>https://maven.aliyun.com/repository/public/</url>
+		</mirror>
+	</mirrors>
+	<profiles>
+		<profile>
+			<!--达内 私服配置-->
+			<id>tedu-repo-java</id>
+			<repositories>
+				<!--Nexus3-->
+				<repository>
+					<id>tedu-releases</id>
+					<name>Tedu Nexus Release Repository</name>
+					<url>https://tech-nexus-p.codeboy.com//repository/maven-releases/</url>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+				</repository>
+
+				<repository>
+					<id>tedu-snapshots</id>
+					<name>Tedu Snapshot Repository</name>
+					<url>https://tech-nexus-p.codeboy.com/repository/maven-snapshots/</url>
+					<snapshots>
+						<enabled>true</enabled>
+						<updatePolicy>daily</updatePolicy>
+						<checksumPolicy>warn</checksumPolicy>
+					</snapshots>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
+	<activeProfiles>
+		<activeProfile>tedu-repo-java</activeProfile>
+	</activeProfiles>
+</settings>
