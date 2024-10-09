@@ -23,7 +23,7 @@ spring:
           uri: lb://lbs-marketing
           predicates:
             - Path=/admin/marketing/**,/marketing/**
-      # CORS跨域配置
+      # CORS跨域配置 后台前端 localhost:3000 localhost:19999
       globalcors:
         cors-configurations:
           '[/**]':
