@@ -18,6 +18,7 @@
         <module>lbs-pojo</module>
         <module>lbs-attach</module>
         <module>lbs-basic</module>
+        <module>lbs-gateway</module>
     </modules>
 
     <properties>
