@@ -1,0 +1,11 @@
+#虚拟机 数据库 redis nacos es rabbitmq
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.8.100:8848
+  datasource:
+    url: jdbc:mysql://192.168.8.100:3306/tarena_lbs_basic?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
