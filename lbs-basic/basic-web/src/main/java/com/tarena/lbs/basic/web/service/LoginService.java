@@ -4,6 +4,9 @@ import com.alibaba.nacos.common.utils.StringUtils;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
+import com.tarena.lbs.common.passport.encoder.JwtEncoder;
+import com.tarena.lbs.common.passport.enums.Roles;
+import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.passport.param.AdminLoginParam;
 import com.tarena.lbs.pojo.passport.vo.LoginVO;
@@ -19,21 +22,28 @@ public class LoginService {
     //2. 读写操作的入参和出参 读操作 的入参是查询条件 出参是PO
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private JwtEncoder jwtEncoder;
     public LoginVO doLogin(AdminLoginParam param) throws BusinessException {
-        //1.利用param中的phone查询是否存在admin数据
         log.info("后台登录业务处理,入参:{}",param);
         String phone = param.getPhone();
         AdminPO po=adminRepository.getAdminByPhone(phone);//数据层命名 最好通过名称知道业务功能
-        //2.判断
-        //电话号码
-        //业务异常 在当前项目使用BusinessException 有2个属性 code和message
-        //希望自定义的业务异常的属性 能和  Result匹配(全局异常捕获 将业务异常信息 转化封装Result)
-        //自定义断言Asserts 代替 if判断抛异常
         Asserts.isTrue(po==null,new BusinessException("-2","该手机号不存在"));
-        //3.对比密码 param中提交密码和po查询的数据库密码
         matchPassword(param.getPassword(),po.getAccountPassword());
-        //TODO 4.phone存在 密码相等匹配 我要生成jwt
-        return new LoginVO();
+        String jwt=generateJwt(po);
+        return new LoginVO(jwt,po.getId(),po.getNickname());
+    }
+
+    private String generateJwt(AdminPO po) throws BusinessException {
+        //在jwt中携带的用户信息 并不是adminPO 而是单独设计的一个用户认证对象UserPrinciple
+        //原因是要和数据库表格解耦
+        UserPrinciple userPrinciple=new UserPrinciple();
+        userPrinciple.setId(po.getId());
+        userPrinciple.setNickname(po.getNickname());
+        //角色 在后台管理中 有2个角色 admin表格 type=0 平台 type=1 商家
+        //在认证对象放的角色是一个枚举Role ADMIN SHOP USER
+        userPrinciple.setRole(po.getAccountType()==0? Roles.ADMIN:Roles.SHOP);
+        return jwtEncoder.generateToken(userPrinciple);
     }
 
     private void matchPassword(String password, String accountPassword) throws BusinessException {
