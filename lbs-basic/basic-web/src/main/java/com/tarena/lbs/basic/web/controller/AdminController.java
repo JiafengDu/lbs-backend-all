@@ -24,14 +24,8 @@ public class AdminController {
     @Autowired
     private JwtEncoder<UserPrinciple> jwtEncoder;
     @GetMapping("/admin/basic/role/detail")
-    public Result<AdminVO> detail(@RequestHeader("Authorization") String jwt, HttpSession session) throws BusinessException {
-        //1.从请求头获取Authorization的数据
-        System.out.println(jwt);
-        //2.解析jwt 获取userPrinciple id nickName Roles
-        UserPrinciple userPrinciple = jwtEncoder.getLoginFromToken(jwt, UserPrinciple.class);
-        //3.获取登录时 携带的adminId
-        Integer id = userPrinciple.getId();
-        AdminVO vo=adminService.detail(id);
+    public Result<AdminVO> detail() throws BusinessException {
+        AdminVO vo=adminService.detail();
         return new Result(vo);
     }
 }
