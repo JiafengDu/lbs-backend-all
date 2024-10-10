@@ -41,6 +41,7 @@ public class MyFilter01 implements Filter {
                 try{
                     UserPrinciple userPrinciple = jwtEncoder.getLoginFromToken(jwt, UserPrinciple.class);
                     //TODO 4.向后想办法传参
+                    /*request.setAttribute("jwt",userPrinciple);*/
                 }catch (BusinessException e){
                     //只打印日志
                     log.error("过滤器解析jwt失败",e);
