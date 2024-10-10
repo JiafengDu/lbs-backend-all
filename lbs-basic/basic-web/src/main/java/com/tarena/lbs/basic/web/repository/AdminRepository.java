@@ -19,4 +19,8 @@ public class AdminRepository {
         query.eq("account_phone",phone);
         return adminMapper.selectOne(query);
     }
+
+    public AdminPO getAdminById(Integer id) {
+        return adminMapper.selectById(id);
+    }
 }
