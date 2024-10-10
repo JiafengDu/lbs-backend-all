@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * 专门处理和后台用户相关的业务接口
@@ -23,7 +24,7 @@ public class AdminController {
     @Autowired
     private JwtEncoder<UserPrinciple> jwtEncoder;
     @GetMapping("/admin/basic/role/detail")
-    public Result<AdminVO> detail(@RequestHeader("Authorization") String jwt) throws BusinessException {
+    public Result<AdminVO> detail(@RequestHeader("Authorization") String jwt, HttpSession session) throws BusinessException {
         //1.从请求头获取Authorization的数据
         System.out.println(jwt);
         //2.解析jwt 获取userPrinciple id nickName Roles
