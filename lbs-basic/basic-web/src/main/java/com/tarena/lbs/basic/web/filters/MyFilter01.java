@@ -1,6 +1,7 @@
 package com.tarena.lbs.basic.web.filters;
 
 import com.tarena.lbs.base.protocol.exception.BusinessException;
+import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.encoder.JwtEncoder;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.param.UserParam;
@@ -16,6 +17,7 @@ import java.io.IOException;
 @Component
 @Slf4j
 public class MyFilter01 implements Filter {
+    private static final String HEADER_AUTH="Authorization";
     @Autowired
     private JwtEncoder<UserPrinciple> jwtEncoder;
     /**
@@ -29,18 +31,19 @@ public class MyFilter01 implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         System.out.println("你好");
+        //先准备好 存放在线程上游的认证对象
+        UserPrinciple userPrinciple = null;
         //1.判断是否是http请求
         if (servletRequest instanceof HttpServletRequest){
             //转化
             HttpServletRequest request = (HttpServletRequest) servletRequest;
             //2.获取头 Authorization
-            String jwt = request.getHeader("Authorization");
+            String jwt = request.getHeader(HEADER_AUTH);
             //判断空 "" null
             if (StringUtils.isNotBlank(jwt)){
                 //3.try catch解析
                 try{
-                    UserPrinciple userPrinciple = jwtEncoder.getLoginFromToken(jwt, UserPrinciple.class);
-                    //TODO 4.向后想办法传参
+                    userPrinciple = jwtEncoder.getLoginFromToken(jwt, UserPrinciple.class);
                     /*request.setAttribute("jwt",userPrinciple);*/
                 }catch (BusinessException e){
                     //只打印日志
@@ -48,7 +51,10 @@ public class MyFilter01 implements Filter {
                 }
             }
         }
+        AuthenticationContextUtils.save(userPrinciple);
         //通过链对象(管子)向后流转请求
         filterChain.doFilter(servletRequest,servletResponse);
+        //当响应即将结束的时候 会调用这里的代码 释放一下当前线程存储的数据
+        AuthenticationContextUtils.clear();
     }
 }
