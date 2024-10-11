@@ -89,4 +89,15 @@ public class BusinessRepository {
         }
         return queryWrapper;
     }
+
+    public Long countBusinessName(String businessName) {
+        //select count(0) from lbs_business where business_name=#{}
+        QueryWrapper queryWrapper=new QueryWrapper();
+        queryWrapper.eq("business_name",businessName);
+        return businessMapper.selectCount(queryWrapper);
+    }
+
+    public void save(BusinessPO po) {
+        businessMapper.insert(po);
+    }
 }

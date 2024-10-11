@@ -2,21 +2,29 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.tarena.lbs.base.common.utils.Asserts;
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
+import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
+import com.tarena.lbs.common.passport.enums.Roles;
+import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
@@ -63,10 +71,50 @@ public class BusinessService {
 
     }
 
-    public void save(BusinessParam param) {
+    public void save(BusinessParam param) throws BusinessException {
         //1.检查当前登录用户的角色是否符合我当前业务的角色要求  ADMIN
+        checkRole(Roles.ADMIN);
         //2.验证检查幂等 是否存在相同名称的商家数据
         //3.幂等验证正常 可以新增 封装 数据对象PO 执行save新增
+        Integer id=saveBusiness(param);
         //TODO 4.新增之后的商家 有了id 定义 type 100营业执照 200logo调用图片绑定
+        bindPictures(id,param);
+    }
+
+    private void bindPictures(Integer id, BusinessParam param) {
+    }
+
+    private Integer saveBusiness(BusinessParam param) throws BusinessException {
+        //考虑 幂等方案 防止出现多个同名的商家
+        //1 先利用param携带的商家名称检查 是否存在数据
+        String businessName = param.getBusinessName();
+        Long count=businessRepository.countBusinessName(businessName);
+        //2 判断 如果存在结束 异常结束
+        Asserts.isTrue(count>0,new BusinessException("-2","商家名称重复"));
+        //3 不存在 封装po新增 数据层 写数据到表格 方法入参 就是PO
+        //3.1先拷贝
+        BusinessPO po=new BusinessPO();
+        BeanUtils.copyProperties(param,po);
+        //3.2 注册时间 entiryTime 审核状态 1待审核2通过3驳回 remarks 审核意见
+        po.setEntryTime(new Date());
+        po.setBusinessStatus(2);
+        po.setAuditRemarks("通过");
+        //po目前的id是空的 mybatis-plus根据po对象属性注解 会自动在新增结束后填补id回对象
+        log.info("当前po对象新增之前id:{}",po.getId());
+        businessRepository.save(po);
+        log.info("当前po对象新增之后id:{}",po.getId());
+        return po.getId();
+    }
+
+    private void checkRole(Roles role) throws BusinessException {
+        //和当前登录的用户做对比
+        //1.先拿到登录认证对象
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        //断言==null 抛异常
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        //2.拿到认证登录角色 和 业务需要的角色对比
+        Roles loginRole = userPrinciple.getRole();
+        //断言不相等 抛异常
+        Asserts.isTrue(loginRole!=role,new BusinessException("-2","用户角色权限不足"));
     }
 }

@@ -1,5 +1,6 @@
 package com.tarena.lbs.basic.web.controller;
 
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.service.BusinessService;
@@ -31,7 +32,7 @@ public class BusinessController {
     //请求体携带json {"key","value"}
     //lbs智慧营销项目中 写操作 如果多个属性 命名类型Param后缀
     @PostMapping("/admin/basic/business/info/save")
-    public Result<Void> save(@RequestBody BusinessParam param){
+    public Result<Void> save(@RequestBody BusinessParam param) throws BusinessException {
         businessService.save(param);
         return Result.success();//code=0 success=true
     }
