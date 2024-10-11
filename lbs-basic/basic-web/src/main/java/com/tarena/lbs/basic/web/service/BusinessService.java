@@ -64,5 +64,9 @@ public class BusinessService {
     }
 
     public void save(BusinessParam param) {
+        //1.检查当前登录用户的角色是否符合我当前业务的角色要求  ADMIN
+        //2.验证检查幂等 是否存在相同名称的商家数据
+        //3.幂等验证正常 可以新增 封装 数据对象PO 执行save新增
+        //TODO 4.新增之后的商家 有了id 定义 type 100营业执照 200logo调用图片绑定
     }
 }
