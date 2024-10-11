@@ -6,6 +6,11 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  #在springboot配置yaml 指定静态文件的访问路径 D://static
+  web:
+    resources:
+      # 静态文件存储地址
+      static-locations: file:D:/static/
   #spring应用名称
   application:
     name: lbs-basic
@@ -17,3 +22,4 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
   mapper-locations: classpath:mapper/*.xml
+
