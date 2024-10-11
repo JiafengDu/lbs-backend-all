@@ -1,6 +1,7 @@
 package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.github.pagehelper.PageInfo;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
@@ -21,12 +22,24 @@ public class BusinessService {
     public PageResult<BusinessVO> pageList(BusinessQuery query) {
         //1.封装分页对象返回
         PageResult<BusinessVO> voPages= new PageResult<>();
-        // total总条数 select count()
-        // objects分页核心业务数据list select * limit from,size
-        // pageNo当前页 就是查询入参 pageNo
-        // pageSize当前页条数 查询入参 pageSize
-        // totalPage 总页数 需要计算 =total%pageSize==0?total/pageSize:total/pageSize+1
-        voPages.setPageNo(query.getPageNo());
+        //2.调用仓储层 使用pageHelper查询 获取返回结果
+        PageInfo<BusinessPO> pageInfo=businessRepository.getPages(query);
+        //3.pageNum pageSize total可以直接封装
+        voPages.setTotal(pageInfo.getTotal());
+        voPages.setPageNo(pageInfo.getPageNum());
+        voPages.setPageSize(pageInfo.getPageSize());
+        //4.vos需要判断非空pos 转化
+        List<BusinessVO> vos=null;
+        if (CollectionUtils.isNotEmpty(pageInfo.getList())){
+            vos=pageInfo.getList().stream().map(po->{
+                BusinessVO vo=new BusinessVO();
+                BeanUtils.copyProperties(po,vo);
+                return vo;
+            }).collect(Collectors.toList());
+        }
+        voPages.setObjects(vos);
+        return voPages;
+        /* voPages.setPageNo(query.getPageNo());
         voPages.setPageSize(query.getPageSize());
         //2.voPages需要封装5个属性才算完毕
         //2.1 查询总条数 以当前条件 查所有 条件先忽略 select count(*) from lbs_business
@@ -45,7 +58,7 @@ public class BusinessService {
         }
         //剩余属性封装完毕
         voPages.setTotal(total);
-        voPages.setObjects(vos);
-        return voPages;
+        voPages.setObjects(vos);*/
+
     }
 }
