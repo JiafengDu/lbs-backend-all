@@ -17,6 +17,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+        <!--dubbo调用依赖-->
+        <dependency>
+            <groupId>com.tarena.lbs</groupId>
+            <artifactId>attach-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.tarena.lbs</groupId>
             <artifactId>basic-api</artifactId>

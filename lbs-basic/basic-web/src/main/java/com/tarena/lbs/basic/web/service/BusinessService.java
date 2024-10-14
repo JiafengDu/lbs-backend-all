@@ -2,13 +2,16 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.tarena.lbs.attach.api.AttachApi;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
+import com.tarena.lbs.basic.web.constant.BusinessTypes;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
@@ -28,6 +31,8 @@ import java.util.stream.Collectors;
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
+    //注入attachApi
+    private AttachApi attachApi;
     public PageResult<BusinessVO> pageList(BusinessQuery query) {
         //1.封装分页对象返回
         PageResult<BusinessVO> voPages= new PageResult<>();
@@ -77,11 +82,42 @@ public class BusinessService {
         //2.验证检查幂等 是否存在相同名称的商家数据
         //3.幂等验证正常 可以新增 封装 数据对象PO 执行save新增
         Integer id=saveBusiness(param);
-        //TODO 4.新增之后的商家 有了id 定义 type 100营业执照 200logo调用图片绑定
+        //4.新增之后的商家 有了id 定义 type 100营业执照 200logo调用图片绑定
         bindPictures(id,param);
     }
 
-    private void bindPictures(Integer id, BusinessParam param) {
+    private void bindPictures(Integer businessId, BusinessParam param) {
+        //商家新增 图片 要绑定两张 一张营业执照 一张logo
+        //准备一下 接口的入参
+        List<PicUpdateParam> picParams=new ArrayList<>();
+        //准备一个PicUpdateParam 存储营业执照 的绑定参数
+        PicUpdateParam licenseParam=new PicUpdateParam();
+        //bizType 100 表示商家营业执照
+        licenseParam.setBusinessType(BusinessTypes.BIZ_LICENSE);
+        //bizId 商家id
+        licenseParam.setBusinessId(businessId);
+        //可以在对象里绑定图片id或者图片fileUuid 当前业务无法获取图片id只能获取fileUuid
+        //http://localhost:9081/static/19fh93gr931h10rf3h29r.png 最后的值是fileUuid的拼接 19fh93gr931h10rf3h29r.png
+        String licenseUrl = param.getBusinessLicense();
+        licenseParam.setFileUuid(getFileUuidFromUrl(licenseUrl));
+        //准备第二个绑定图片的入参元素 绑定logo
+        PicUpdateParam logoParam=new PicUpdateParam();
+        logoParam.setBusinessType(BusinessTypes.BIZ_LOGO);
+        logoParam.setBusinessId(businessId);
+        String logoUrl = param.getBusinessLogo();
+        logoParam.setFileUuid(getFileUuidFromUrl(logoUrl));
+        //将营业执照图片数据 和log图片数据放到list中
+        picParams.add(licenseParam);
+        picParams.add(logoParam);
+        boolean result = attachApi.batchUpdateBusiness(picParams);
+    }
+
+    private String getFileUuidFromUrl(String url) {
+        //http://localhost:9081/static/19fh93gr931h10rf3h29r.png
+        //截取
+        String fileUuid= url.split("/")[4];
+        log.info("获取当前url:{};的fileUuid:{}",url,fileUuid);
+        return fileUuid;
     }
 
     private Integer saveBusiness(BusinessParam param) throws BusinessException {
