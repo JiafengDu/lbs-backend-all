@@ -21,6 +21,7 @@ import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,7 +78,8 @@ public class BusinessService {
         voPages.setObjects(vos);*/
 
     }
-
+    //@Transactional默认 回滚的异常是Runtime
+    @Transactional(rollbackFor = Exception.class)
     public void save(BusinessParam param) throws BusinessException {
         //1.检查当前登录用户的角色是否符合我当前业务的角色要求  ADMIN
         checkRole(Roles.ADMIN);
@@ -88,7 +90,7 @@ public class BusinessService {
         bindPictures(id,param);
     }
 
-    private void bindPictures(Integer businessId, BusinessParam param) {
+    private void bindPictures(Integer businessId, BusinessParam param) throws BusinessException {
         //商家新增 图片 要绑定两张 一张营业执照 一张logo
         //准备一下 接口的入参
         List<PicUpdateParam> picParams=new ArrayList<>();
@@ -112,6 +114,7 @@ public class BusinessService {
         picParams.add(licenseParam);
         picParams.add(logoParam);
         boolean result = attachApi.batchUpdateBusiness(picParams);
+        Asserts.isTrue(!result,new BusinessException("-2","业务绑定失败"));
     }
 
     private String getFileUuidFromUrl(String url) {
