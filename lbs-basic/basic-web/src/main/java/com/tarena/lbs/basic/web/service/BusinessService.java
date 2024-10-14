@@ -17,6 +17,7 @@ import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
     //注入attachApi
+    @DubboReference
     private AttachApi attachApi;
     public PageResult<BusinessVO> pageList(BusinessQuery query) {
         //1.封装分页对象返回
