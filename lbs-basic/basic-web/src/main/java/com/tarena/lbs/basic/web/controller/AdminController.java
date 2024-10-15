@@ -6,6 +6,7 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.service.AdminService;
 import com.tarena.lbs.common.passport.encoder.JwtEncoder;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.basic.param.AdminParam;
 import com.tarena.lbs.pojo.basic.query.AdminQuery;
 import com.tarena.lbs.pojo.basic.vo.AdminVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,4 +36,56 @@ public class AdminController {
         PageResult<AdminVO> voPage= adminService.pageList(query);
         return new Result<>(voPage);
     }
+
+    @PostMapping("/admin/basic/role/add")
+    public Result<Void> save(@RequestBody AdminParam param)
+        throws BusinessException{
+        adminService.save(param);
+        return Result.success();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

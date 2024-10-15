@@ -51,4 +51,15 @@ public class AdminRepository {
         }
         return queryWrapper;
     }
+
+    public Long countByPhone(String accountPhone) {
+        //select count(0) from lbs_admin where accout_phone=#{phone}
+        QueryWrapper queryWrapper=new QueryWrapper();
+        queryWrapper.eq("account_phone",accountPhone);
+        return adminMapper.selectCount(queryWrapper);
+    }
+
+    public void save(AdminPO poParam) {
+        adminMapper.insert(poParam);
+    }
 }

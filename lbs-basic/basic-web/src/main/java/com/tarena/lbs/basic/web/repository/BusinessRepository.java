@@ -100,4 +100,8 @@ public class BusinessRepository {
     public void save(BusinessPO po) {
         businessMapper.insert(po);
     }
+
+    public BusinessPO getBusinessById(Integer businessId) {
+        return businessMapper.selectById(businessId);
+    }
 }
