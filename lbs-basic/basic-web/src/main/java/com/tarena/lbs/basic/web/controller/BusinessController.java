@@ -23,7 +23,8 @@ public class BusinessController {
     //商家的分页列表查询
     //读数据入参 单个属性 id name 对象数据 query结尾
     @GetMapping("/admin/basic/business/info/list")
-    public Result<PageResult<BusinessVO>> pageList(BusinessQuery query){
+    public Result<PageResult<BusinessVO>> pageList(BusinessQuery query)
+            throws BusinessException {
         PageResult<BusinessVO> voPages= businessService.pageList(query);
         return new Result<>(voPages);
     }

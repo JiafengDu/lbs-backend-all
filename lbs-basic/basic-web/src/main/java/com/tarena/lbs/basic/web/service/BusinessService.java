@@ -7,12 +7,14 @@ import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.constant.BusinessTypes;
+import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
+import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
@@ -33,10 +35,35 @@ import java.util.stream.Collectors;
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
+    @Autowired
+    private AdminRepository adminRepository;
     //注入attachApi
     @DubboReference
     private AttachApi attachApi;
-    public PageResult<BusinessVO> pageList(BusinessQuery query) {
+    public PageResult<BusinessVO> pageList(BusinessQuery query) throws BusinessException {
+        //1.取 认证对象 验证
+        UserPrinciple userPrinciple= getUserPrinciple();
+        //2.取 角色
+        Roles role = userPrinciple.getRole();
+        if (role==Roles.SHOP){
+            //1.取得商家账号的id adminId 查询admin详情 拿到businessId
+            Integer adminId = userPrinciple.getId();
+            AdminPO adminPO = adminRepository.getAdminById(adminId);
+            Asserts.isTrue(adminPO==null,new BusinessException("-2","商家不存在"));
+            //2.在query中 为当前商家账号的查询 补充一个businessId
+            query.setBusinessId(adminPO.getBusinessId());
+        }
+        //3.分页查询
+        return doPageList(query);
+    }
+
+    private UserPrinciple getUserPrinciple() throws BusinessException {
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        return userPrinciple;
+    }
+
+    public PageResult<BusinessVO> doPageList(BusinessQuery query) {
         //1.封装分页对象返回
         PageResult<BusinessVO> voPages= new PageResult<>();
         //2.调用仓储层 使用pageHelper查询 获取返回结果
