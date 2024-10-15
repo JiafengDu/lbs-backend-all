@@ -2,6 +2,7 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.tarena.lbs.attach.api.AttachApi;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
@@ -11,6 +12,7 @@ import com.tarena.lbs.basic.web.repository.StoreRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.StoreParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
@@ -19,10 +21,12 @@ import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import com.tarena.lbs.pojo.basic.vo.AdminVO;
 import com.tarena.lbs.pojo.basic.vo.StoreVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +40,8 @@ public class StoreService {
     private AdminRepository adminRepository;
     @Autowired
     private BusinessRepository businessRepository;
+    @DubboReference
+    private AttachApi attachApi;
     public PageResult<StoreVO> pageList(StoreQuery query) throws BusinessException {
         //1.获取登录用户的认证对象
         UserPrinciple userPrinciple=getUserPrinciple();
@@ -89,13 +95,48 @@ public class StoreService {
         checkBusiness(param.getBusinessId());
         //3.封装补充完成po status(0启用 1禁用) createTime updateTime
         StorePO poParam=storeParam2po(param);
-        //4.到底写入 es还是数据库 不是业务层考虑的问题 TODO
+        //4.到底写入 es还是数据库 不是业务层考虑的问题
         storeRepository.save(poParam);
         //5.上面都没问题 绑定图片 最终一致性 生产发送可靠消息 confirm消息 TODO
         bindPicture(param,poParam.getId());
     }
 
     private void bindPicture(StoreParam param, Integer id) {
+        //绑定图片的业务 是根据入参中的图片ids logo 照片 绑定的当前店铺
+        //1.准备封装一个调用绑定图片的参数
+        List<PicUpdateParam> picParams=new ArrayList<>();
+        //2.封装一个logo参数
+        PicUpdateParam logoParam=new PicUpdateParam();
+        logoParam.setBusinessId(id);
+        logoParam.setBusinessType(300);
+        logoParam.setId(Integer.valueOf(param.getStoreLogo()));
+        picParams.add(logoParam);
+        //3.封装一组 店铺门店图片
+        List<String> storeImagesIds = param.getStoreImagesIds();
+        List<PicUpdateParam> storeImagesParams=
+                storeImagesIds.stream().map(storeImageId->{
+                    PicUpdateParam storeImageParam=new PicUpdateParam();
+                    storeImageParam.setBusinessType(400);
+                    storeImageParam.setBusinessId(id);
+                    storeImageParam.setId(Integer.valueOf(storeImageId));
+                    return storeImageParam;
+                }).collect(Collectors.toList());
+        //将门店图片 参数 全部 加入到 远程调用的入参里
+        picParams.addAll(storeImagesParams);
+        //发起远程dubbo调用
+        boolean result = attachApi.batchUpdateBusiness(picParams);
+        /*try{
+            List<PicUpdateParam> picParams=assemblePicUpdateParams(param,id,300,400);
+            boolean result=sendMessage(picParams);//抛异常
+            if (!result){
+                reSend(picParams);//重试发送
+            }
+        }catch (Exception e){
+            log.info("尝试多次发送图片绑定消息失败 记录日志 param:{}....");
+            //对接监控预警
+            alarm();//调用一次alarm接口 实现逻辑 是将信息发送给监控预警系统 如果发送信息 触发阈值
+            // (100次 消息发送失败3次) 监控预警系统就会短信 电话通知开发
+        }*/
     }
 
     private StorePO storeParam2po(StoreParam param) {

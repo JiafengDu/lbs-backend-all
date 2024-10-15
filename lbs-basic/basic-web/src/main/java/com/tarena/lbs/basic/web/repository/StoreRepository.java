@@ -8,6 +8,7 @@ import com.tarena.lbs.pojo.basic.po.StorePO;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,8 +28,10 @@ public class StoreRepository {
         List<StorePO> pos = storeMapper.selectList(queryWrapper);
         return new PageInfo<>(pos);
     }
-
+    @Transactional(rollbackFor = Exception.class)
     public void save(StorePO poParam) {
-
+        //1.使用mapper写入 数据库表
+        storeMapper.insert(poParam);
+        //TODO 2.将地理位置绑定storeId写入到es
     }
 }
