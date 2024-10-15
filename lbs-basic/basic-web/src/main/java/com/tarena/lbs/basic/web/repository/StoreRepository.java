@@ -27,4 +27,8 @@ public class StoreRepository {
         List<StorePO> pos = storeMapper.selectList(queryWrapper);
         return new PageInfo<>(pos);
     }
+
+    public void save(StorePO poParam) {
+
+    }
 }
