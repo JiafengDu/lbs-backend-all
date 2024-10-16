@@ -2,17 +2,26 @@ package com.tarena.basic.test.es;
 
 import org.apache.http.HttpHost;
 import org.checkerframework.checker.units.qual.C;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.GetIndexResponse;
+import org.elasticsearch.cluster.metadata.AliasMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 专题测试
@@ -81,6 +90,68 @@ public class ESIndexTest {
         boolean shardsAcknowledged = response.isShardsAcknowledged();
         System.out.println(shardsAcknowledged);
     }
+    //创建索引 带有mapping映射的数据
+    @Test
+    public void createIndexWithMapping() throws IOException {
+        CreateIndexRequest request=new CreateIndexRequest("test03");
+        //添加setting 1个分片 0个副本
+        Settings.Builder setting = Settings.builder()
+                .put("number_of_shards", 1)
+                .put("number_of_replicas", 0);
+        request.settings(setting);
+        //同时 携带数据 mapping映射 定义 id 类型integer location 类型geo_point name 类型 text
+        String mappingJson="{\"properties\":{\"id\":{\"type\":\"integer\"},\"location\":{\"type\":\"geo_point\"},\"name\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\",\"search_analyzer\":\"ik_max_word\"}}}";
+        //请求携带这个数据
+        request.mapping(mappingJson, XContentType.JSON);
+        IndicesClient indices = client.indices();
+        CreateIndexResponse response = indices.create(request, RequestOptions.DEFAULT);
+        String indexName = response.index();
+        System.out.println(indexName);
+        boolean acknowledged = response.isAcknowledged();
+        System.out.println(acknowledged);
+        boolean shardsAcknowledged = response.isShardsAcknowledged();
+        System.out.println(shardsAcknowledged);
+    }
+
+    //删除索引
+    @Test
+    public void deleteIndex() throws IOException {
+        //1.准备一个 专门做删除索引的 接口的请求对象
+        DeleteIndexRequest request=new DeleteIndexRequest("test02");
+        //2.使用索引管理对象发起命令请求
+        IndicesClient indices = client.indices();
+        AcknowledgedResponse response = indices.delete(request, RequestOptions.DEFAULT);
+        //3.解析响应
+        boolean acknowledged = response.isAcknowledged();
+        System.out.println(acknowledged);//true 删除成功 false删除失败
+    }
+    //判断索引是否存在
+    @Test
+    public void exists() throws IOException {
+        //判断存在 是一个客户端业务逻辑 底层就是查询索引 获取索引
+        GetIndexRequest request=new GetIndexRequest("test03");
+        //发送命令
+        boolean exists = client.indices().exists(request, RequestOptions.DEFAULT);
+        //true是存在 不存在就是false
+        System.out.println(exists);
+    }
+    //查询索引详情  属于读的操作 重点在于response的解析
+    //搜索也是读操作 重点在于response解析
+    @Test
+    public void getIndexDetail() throws IOException {
+        //构造查询索引请求 get
+        GetIndexRequest request=new GetIndexRequest("test03");
+        //发起请求 获取响应
+        GetIndexResponse response = client.indices().get(request, RequestOptions.DEFAULT);
+        //解析response可以获取拿到  settings mapping 其他详情
+        Map<String, List<AliasMetaData>> aliases = response.getAliases();//索引别名 方便理解
+        System.out.println(aliases);
+        Map<String, Settings> settings = response.getSettings();
+        System.out.println(settings);
+        Map<String, MappingMetaData> mappings = response.getMappings();
+        System.out.println(mappings);
+    }
+
 
 
 
