@@ -66,5 +66,10 @@
             <artifactId>guava</artifactId>
             <version>30.1-jre</version> <!-- 根据实际情况选择版本 -->
         </dependency>
+        <!--es-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
     </dependencies>
 </project>

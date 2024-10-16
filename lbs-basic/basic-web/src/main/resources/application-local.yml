@@ -1,5 +1,7 @@
 #本地环境 数据库 redis nacos es rabbitmq
 spring:
+  elasticsearch:
+    uris: http://localhost:9200
   cloud:
     nacos:
       discovery:

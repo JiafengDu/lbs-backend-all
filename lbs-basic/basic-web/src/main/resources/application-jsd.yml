@@ -1,5 +1,7 @@
 #虚拟机 数据库 redis nacos es rabbitmq
 spring:
+  elasticsearch:
+    uris: http://192.168.8.100:9200
   cloud:
     nacos:
       discovery:

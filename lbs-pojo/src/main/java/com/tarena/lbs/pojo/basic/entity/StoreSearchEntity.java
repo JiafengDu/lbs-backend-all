@@ -15,5 +15,8 @@ public class StoreSearchEntity {
     private String location;
     @Field(type = FieldType.Text,analyzer="ik_max_word")
     private String storeName;
+    //添加一个属性,关联商家的id
+    @Field(type = FieldType.Integer)
+    private Integer businessId;
 }
 
