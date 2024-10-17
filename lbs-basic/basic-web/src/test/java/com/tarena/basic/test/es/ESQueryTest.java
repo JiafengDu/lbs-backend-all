@@ -12,6 +12,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -87,6 +88,30 @@ public class ESQueryTest {
         SearchHit[] docHits = allHits.getHits();//每个元素 表示当初使用id查询的doc封装
         Arrays.stream(docHits).forEach(docHit->{
             log.info("本次命中查询结果 doc:{}",docHit.getSourceAsString());
+        });
+    }
+    //term词项查询
+    @Test
+    public void termQuery(){
+        SearchRequest request=new SearchRequest(TEST_INDEX);
+        SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
+        TermQueryBuilder query = QueryBuilders.termQuery("birthday", "2018-01-01");//where age=18
+        sourceBuilder.query(query);
+        request.source(sourceBuilder);
+        SearchResponse response =null;
+        try {
+            response = client.search(request, RequestOptions.DEFAULT);
+            log.info("本次查询命中文档总数,total:{}",response.getHits().getTotalHits().value);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TotalHits totalHits = response.getHits().getTotalHits();
+        log.info("查询总数:{}",totalHits.value);
+        float maxScore = response.getHits().getMaxScore();
+        log.info("最高分:{}",maxScore);
+        SearchHit[] hits = response.getHits().getHits();
+        Arrays.stream(hits).forEach(hit->{
+            log.info("命中结果:{}",hit.getSourceAsString());
         });
     }
 
