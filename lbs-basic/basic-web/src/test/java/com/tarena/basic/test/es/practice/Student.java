@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class Student {
     private String name;
-    private String student_no;
+    private String studentNo;
     private LocalDate birthday;
     private String location;
     private String gender;
