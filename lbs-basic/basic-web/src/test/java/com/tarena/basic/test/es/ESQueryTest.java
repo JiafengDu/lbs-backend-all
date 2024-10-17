@@ -95,8 +95,10 @@ public class ESQueryTest {
     public void termQuery(){
         SearchRequest request=new SearchRequest(TEST_INDEX);
         SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
-        TermQueryBuilder query = QueryBuilders.termQuery("birthday", "2018-01-01");//where age=18
-        sourceBuilder.query(query);
+        //徐丽丽字符串 存储 创建词项的时候 分词逻辑 徐丽丽--> 徐 丽 徐丽  徐丽丽
+        TermQueryBuilder query = QueryBuilders.termQuery("name", "丽");//where age=18
+        sourceBuilder.query(query).from(0).size(200);
+        log.info("最终查询参数:{}",sourceBuilder);
         request.source(sourceBuilder);
         SearchResponse response =null;
         try {
