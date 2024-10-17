@@ -48,7 +48,7 @@ public class IndexBuilder {
             //创建的索引需要指定分片1 副本0 使用上述MAPPING设置映射
             //3.1 设置settings
             Settings.Builder settingBuilder = Settings.builder()
-                    .put("number_of_shards", 1)
+                    .put("number_of_shards", 5)
                     .put("number_of_replicas", 0);
             createRequest.settings(settingBuilder);
             //3.2 设置mapping json
