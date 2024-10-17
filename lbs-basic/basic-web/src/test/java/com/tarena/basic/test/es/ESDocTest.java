@@ -158,5 +158,4 @@ public class ESDocTest {
         //调用发送批量命令
         client.bulk(request, RequestOptions.DEFAULT);
     }
-
 }
