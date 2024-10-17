@@ -1,6 +1,7 @@
 package com.tarena.basic.test.es;
 
 import com.alibaba.fastjson2.JSON;
+import com.tarena.basic.test.es.practice.Student;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.DocWriteResponse;
@@ -20,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +40,17 @@ public class ESDocTest {
         client=new RestHighLevelClient(RestClient.builder(host));
     }
     //测试新增文档(1一个)
+    @Test
+    public void addStudent() throws IOException {
+        Student student=new Student("徐丽华","20240987", LocalDate.now(),"39.90999,116.19879","女");
+        //1.无论做什么操作 先要准备一个匹配当前功能的请求对象
+        IndexRequest request = new IndexRequest("students");//分别在一个没有mapping的索引 和有自定义mapping的索引写入
+        String dataJson= JSON.toJSONString(student);
+        log.info("当前数据文档的json:{}",dataJson);
+        request.source(dataJson, XContentType.JSON);
+        //2.客户端发起请求 写入文档
+        IndexResponse response = client.index(request, RequestOptions.DEFAULT);
+    }
     @Test
     public void testAddDoc() throws IOException {
         //准备一个新增doc文档对象.

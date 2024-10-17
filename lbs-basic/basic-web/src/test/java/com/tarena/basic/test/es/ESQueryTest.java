@@ -10,9 +10,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.MatchAllQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -116,5 +114,63 @@ public class ESQueryTest {
             log.info("命中结果:{}",hit.getSourceAsString());
         });
     }
+    //matchquery 搜索查询相似度更高的文档
+    @Test
+    public void matchQuery(){
+        SearchRequest request=new SearchRequest(TEST_INDEX);
+        SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
+        //matchquery
+        MatchQueryBuilder query = QueryBuilders.matchQuery("name","徐丽丽");
+        sourceBuilder.query(query).from(0).size(200);
+        log.info("最终查询参数:{}",sourceBuilder);
+        request.source(sourceBuilder);
+        SearchResponse response =null;
+        try {
+            response = client.search(request, RequestOptions.DEFAULT);
+            log.info("本次查询命中文档总数,total:{}",response.getHits().getTotalHits().value);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TotalHits totalHits = response.getHits().getTotalHits();
+        log.info("查询总数:{}",totalHits.value);
+        float maxScore = response.getHits().getMaxScore();
+        log.info("最高分:{}",maxScore);
+        SearchHit[] hits = response.getHits().getHits();
+        Arrays.stream(hits).forEach(hit->{
+            log.info("命中结果:{}",hit.getSourceAsString());
+            log.info("命中评分:{}",hit.getScore());
+        });
+    }
+    //rangeQuery
+    @Test
+    public void rangeQuery(){
+        SearchRequest request=new SearchRequest(TEST_INDEX);
+        SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
+        //rangequery
+        RangeQueryBuilder query = QueryBuilders.rangeQuery("birthday");
+        //设置上限时间 下限时间
+        query.gte("2017-02-01");
+        query.lte("2019-02-01");
+        sourceBuilder.query(query).from(0).size(200);
+        log.info("最终查询参数:{}",sourceBuilder);
+        request.source(sourceBuilder);
+        SearchResponse response =null;
+        try {
+            response = client.search(request, RequestOptions.DEFAULT);
+            log.info("本次查询命中文档总数,total:{}",response.getHits().getTotalHits().value);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TotalHits totalHits = response.getHits().getTotalHits();
+        log.info("查询总数:{}",totalHits.value);
+        float maxScore = response.getHits().getMaxScore();
+        log.info("最高分:{}",maxScore);
+        SearchHit[] hits = response.getHits().getHits();
+        Arrays.stream(hits).forEach(hit->{
+            log.info("命中结果:{}",hit.getSourceAsString());
+            log.info("命中评分:{}",hit.getScore());
+        });
+    }
+
 
 }
