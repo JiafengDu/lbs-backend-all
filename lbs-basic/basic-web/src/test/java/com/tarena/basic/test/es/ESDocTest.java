@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
@@ -19,7 +20,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -128,6 +131,32 @@ public class ESDocTest {
             e.printStackTrace();
         }
     }
-    //TODO 批量
+    //批量
+    //加入做批量数据功能 一次性从数据库将50万分数据写入es
+    //查询 总数 发现50万条
+    //将50万条 分批 一批1000条 分500次 每次批量写入es 1000条每次 就可以使用 批量操作
+    //ES bulk
+    @Test
+    public void testBulk() throws IOException {
+        //list模拟批量
+        List<DocEntity> docs=new ArrayList<>();
+        docs.add(new DocEntity(101,"40,120","mike"));
+        docs.add(new DocEntity(100,"39,119","mary"));
+        //2构造一个 bulk批量请求 封装 所有要做的request对象
+        BulkRequest request=new BulkRequest();
+        //对于bulk对象 就是将每次index创建索引对象请求 做包装 携带给es执行
+        //3循环文档封装批量请求
+        for (DocEntity doc : docs) {
+            //每一个创建文档的请求
+            IndexRequest indexRequest=new IndexRequest("test01");
+            String jsonString = JSON.toJSONString(doc);
+            indexRequest.id(doc.getId()+"");
+            indexRequest.source(jsonString, XContentType.JSON);
+            //交给批量请求处理
+            request.add(indexRequest);
+        }
+        //调用发送批量命令
+        client.bulk(request, RequestOptions.DEFAULT);
+    }
 
 }
