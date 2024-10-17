@@ -202,6 +202,42 @@ public class ESQueryTest {
             log.info("命中评分:{}",hit.getScore());
         });
     }
-    //
+    //BOOL查询
+    @Test
+    public void boolQuery(){
+        SearchRequest request=new SearchRequest(TEST_INDEX);
+        SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
+        //查询 名字中有 李字的
+        TermQueryBuilder query1 = QueryBuilders.termQuery("name", "徐");
+        //查询 名字中有 王字的
+        TermQueryBuilder query2 = QueryBuilders.termQuery("name", "丽");
+        //should
+        TermQueryBuilder query3 = QueryBuilders.termQuery("name", "华");
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
+        //约定 描述一下 query下面2个字条件的逻辑关系 must must_not should
+        query.must(query1);
+        query.must(query2);
+        query.should(query3);
+
+        sourceBuilder.query(query).from(0).size(200);
+        log.info("最终查询参数:{}",sourceBuilder);
+        request.source(sourceBuilder);
+        SearchResponse response =null;
+        try {
+            response = client.search(request, RequestOptions.DEFAULT);
+            log.info("本次查询命中文档总数,total:{}",response.getHits().getTotalHits().value);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TotalHits totalHits = response.getHits().getTotalHits();
+        log.info("查询总数:{}",totalHits.value);
+        float maxScore = response.getHits().getMaxScore();
+        log.info("最高分:{}",maxScore);
+        SearchHit[] hits = response.getHits().getHits();
+        Arrays.stream(hits).forEach(hit->{
+            log.info("命中结果:{}",hit.getSourceAsString());
+            log.info("命中评分:{}",hit.getScore());
+        });
+    }
 
 }
