@@ -9,6 +9,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
@@ -171,6 +172,36 @@ public class ESQueryTest {
             log.info("命中评分:{}",hit.getScore());
         });
     }
-
+    @Test
+    public void geoDistanceQuery(){
+        SearchRequest request=new SearchRequest(TEST_INDEX);
+        SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
+        //以 39.909 116.178为中点 以 10公里 20公里 30公里为半径 来查询范围内学生
+        GeoDistanceQueryBuilder query = QueryBuilders.geoDistanceQuery("location");
+        //设置中心点
+        query.point(39.909,116.178);
+        //设置半径
+        query.distance(30d, DistanceUnit.KILOMETERS);
+        sourceBuilder.query(query).from(0).size(200);
+        log.info("最终查询参数:{}",sourceBuilder);
+        request.source(sourceBuilder);
+        SearchResponse response =null;
+        try {
+            response = client.search(request, RequestOptions.DEFAULT);
+            log.info("本次查询命中文档总数,total:{}",response.getHits().getTotalHits().value);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TotalHits totalHits = response.getHits().getTotalHits();
+        log.info("查询总数:{}",totalHits.value);
+        float maxScore = response.getHits().getMaxScore();
+        log.info("最高分:{}",maxScore);
+        SearchHit[] hits = response.getHits().getHits();
+        Arrays.stream(hits).forEach(hit->{
+            log.info("命中结果:{}",hit.getSourceAsString());
+            log.info("命中评分:{}",hit.getScore());
+        });
+    }
+    //
 
 }
