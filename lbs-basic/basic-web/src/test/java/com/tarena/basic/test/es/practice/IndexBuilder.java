@@ -17,14 +17,14 @@ public class IndexBuilder {
     }
     private static RestHighLevelClient client;// 初始化你的Elasticsearch客户端
     static {
-        //TODO 初始化连接
+        //TODO 初始化连接 RestHighLevelClient client
     }
 
     private static String MAPPING="{\"properties\":{\"name\":{\"type\":\"text\",\"analyzer\":\"ik_max_word\",\"search_analyzer\":\"ik_smart\"},\"student_no\":{\"type\":\"text\"},\"birthday\":{\"type\":\"date\"},\"location\":{\"type\":\"geo_point\"},\"gender\":{\"type\":\"keyword\"}}}";
     private static void createIndexIfNotExists(String indexName) {
         try{
             //TODO 如果索引不存在 则创建索引 存在则先删除在创建
-            //TODO 创建的索引需要指定分片1 副本0 使用书名MAPPING设置映射
+            //TODO 创建的索引需要指定分片1 副本0 使用上述MAPPING设置映射
         }catch (Exception e){
             log.error("测试环境创建索引:{},出现问题",indexName);
             log.error("具体问题:",e);
