@@ -19,6 +19,7 @@
         <module>lbs-attach</module>
         <module>lbs-basic</module>
         <module>lbs-gateway</module>
+        <module>lbs-article</module>
     </modules>
 
     <properties>
