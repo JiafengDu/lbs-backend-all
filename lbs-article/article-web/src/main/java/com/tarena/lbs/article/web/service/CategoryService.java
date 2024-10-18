@@ -31,6 +31,7 @@ public class CategoryService {
             BeanUtils.copyProperties(po,vo);
             return vo;
         }).collect(Collectors.toList());
+        voPage.setObjects(vos);
         return voPage;
     }
 }
