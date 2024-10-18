@@ -190,7 +190,33 @@ public class StoreService {
         Asserts.isTrue(loginRole!=role,new BusinessException("-2","用户角色权限不足"));
     }
 
-    public PageResult<StoreVO> getStoreByCity(AreaStoreQuery query) {
-        return null;
+    public PageResult<StoreVO> getStoreByCity(AreaStoreQuery query) throws BusinessException {
+        //使用登录用户 拿到用户所属商家id 结合城市cityIdList构造sql查询数据
+        //1.解析认证对象 拿到adminId 查询businessId
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        Integer adminId = userPrinciple.getId();
+        //2. 查询商家账号详情
+        AdminPO adminPo = adminRepository.getAdminById(adminId);
+        Asserts.isTrue(adminPo==null,new BusinessException("-2","商家账号不存在"));
+        Integer businessId = adminPo.getBusinessId();
+        //3. 调用仓储层 查询店铺列表
+        List<StorePO> pos=storeRepository.getAreaStores(query.getCityIdList(),businessId);
+        //4.封装分页结果
+        PageResult<StoreVO> voPage=new PageResult<>();
+        voPage.setPageSize(10);
+        voPage.setPageNo(1);
+        voPage.setTotal(100l);
+        //pos店铺列表不空是 封装vos
+        List<StoreVO> vos=null;
+        if (CollectionUtils.isNotEmpty(pos)){
+            vos=pos.stream().map(po->{
+                StoreVO vo=new StoreVO();
+                BeanUtils.copyProperties(po,vo);
+                return vo;
+            }).collect(Collectors.toList());
+        }
+        voPage.setObjects(vos);
+        return voPage;
     }
 }

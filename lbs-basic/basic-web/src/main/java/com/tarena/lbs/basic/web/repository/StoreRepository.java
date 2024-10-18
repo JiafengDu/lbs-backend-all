@@ -45,4 +45,22 @@ public class StoreRepository {
         entity.setLocation(poParam.getStoreLatitude()+","+poParam.getStoreLongitude());
         storeESRepository.save(entity);
     }
+
+    public List<StorePO> getAreaStores(List<Long> cityIdList, Integer businessId) {
+        //调用mybatis-plus的queryWrapper封装 查询条件
+        QueryWrapper<StorePO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("business_id", businessId)
+                .and(
+                    qw->
+                    qw.in("province_id", cityIdList).
+                            or().
+                            in("city_id", cityIdList).
+                            or().
+                            in("area_id",cityIdList));
+        return storeMapper.selectList(queryWrapper);
+        /*queryWrapper.in("city_id", cityIdList).or()
+                .in("province_id", cityIdList).or()
+                .in("area_id", cityIdList);*/
+
+    }
 }
