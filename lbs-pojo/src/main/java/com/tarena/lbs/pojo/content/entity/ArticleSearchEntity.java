@@ -28,8 +28,10 @@ public class ArticleSearchEntity {
 
     @Field(type = FieldType.Text)
     private String articleDigest;
+
     @Field(type = FieldType.Keyword)
     private String articleUsername;
+
     @Field(type = FieldType.Keyword)
     private String articleCover;
 

@@ -65,6 +65,7 @@ public class ArticleRepository {
     }
 
     private void generateSource(SearchSourceBuilder builder, ArticleQuery repositoryQuery) {
+        //select * from user where userName=#{} if userName!=null
         //构造一个bool 所有的子条件都是must 子条件类型 和参数 来自于query非空属性
         BoolQueryBuilder query = QueryBuilders.boolQuery();
         //1.文章标题 全文检索 matchQuery
@@ -113,5 +114,6 @@ public class ArticleRepository {
         }
         //将query交给builder
         builder.query(query);
+        log.info("构造的查询条件:{}",query);
     }
 }
