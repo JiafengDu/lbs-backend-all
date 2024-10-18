@@ -30,6 +30,7 @@
         <dependency>
             <groupId>com.tarena.lbs</groupId>
             <artifactId>article-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <!--web应用开发所需依赖-->
         <!--应用-->
