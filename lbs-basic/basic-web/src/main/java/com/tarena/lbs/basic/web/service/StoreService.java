@@ -17,6 +17,7 @@ import com.tarena.lbs.pojo.basic.param.StoreParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.po.StorePO;
+import com.tarena.lbs.pojo.basic.query.AreaStoreQuery;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import com.tarena.lbs.pojo.basic.vo.AdminVO;
 import com.tarena.lbs.pojo.basic.vo.StoreVO;
@@ -187,5 +188,9 @@ public class StoreService {
         Roles loginRole = userPrinciple.getRole();
         //断言不相等 抛异常
         Asserts.isTrue(loginRole!=role,new BusinessException("-2","用户角色权限不足"));
+    }
+
+    public PageResult<StoreVO> getStoreByCity(AreaStoreQuery query) {
+        return null;
     }
 }

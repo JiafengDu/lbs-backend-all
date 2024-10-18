@@ -33,6 +33,12 @@ public class AreaController {
         return new Result<>(vos);
     }
 
+    //筛选店铺的城市区域树接口
+    @GetMapping("/admin/basic/area/tree")
+    public Result<List<AreaVO>> tree(){
+        return new Result<>(areaService.tree());
+    }
+
 
 
 

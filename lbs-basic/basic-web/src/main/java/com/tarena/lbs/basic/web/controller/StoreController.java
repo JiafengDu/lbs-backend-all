@@ -5,6 +5,7 @@ import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.service.StoreService;
 import com.tarena.lbs.pojo.basic.param.StoreParam;
+import com.tarena.lbs.pojo.basic.query.AreaStoreQuery;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import com.tarena.lbs.pojo.basic.vo.StoreVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,14 @@ public class StoreController {
         throws BusinessException {
         storeService.save(param);
         return Result.success();
+    }
+
+    //查询 属于当前登录用户 所属商家 和满足区域条件的店铺列表
+    @PostMapping("/admin/basic/store/getStoreByCity")
+    public Result<PageResult<StoreVO>> getStoreByCity(@RequestBody AreaStoreQuery query)
+        throws BusinessException {
+        PageResult<StoreVO> voPage= storeService.getStoreByCity(query);
+        return new Result<>(voPage);
     }
 
 }

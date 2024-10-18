@@ -30,7 +30,7 @@ public class MyFilter01 implements Filter {
      */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        System.out.println("你好");
+        //System.out.println("你好");
         //先准备好 存放在线程上游的认证对象
         UserPrinciple userPrinciple = null;
         //1.判断是否是http请求
