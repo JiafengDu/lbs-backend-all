@@ -1,14 +1,20 @@
 package com.tarena.lbs.article.web.repository;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.tarena.lbs.article.web.service.ArticleService;
 import com.tarena.lbs.pojo.content.entity.ArticleSearchEntity;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.DistanceUnit;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +65,53 @@ public class ArticleRepository {
     }
 
     private void generateSource(SearchSourceBuilder builder, ArticleQuery repositoryQuery) {
-
+        //构造一个bool 所有的子条件都是must 子条件类型 和参数 来自于query非空属性
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
+        //1.文章标题 全文检索 matchQuery
+        if (StringUtils.isNotBlank(repositoryQuery.getArticleTitle())){
+            query.must(QueryBuilders.matchQuery("articleTitle",repositoryQuery.getArticleTitle()));
+        }
+        //2.如果分类id 非空 termquery
+        if (repositoryQuery.getArticleCategoryId()!=null){
+            query.must(QueryBuilders.termQuery("articleCategoryId",repositoryQuery.getArticleCategoryId()));
+        }
+        //3.文章标签非空 termquery
+        if (StringUtils.isNotBlank(repositoryQuery.getArticleLabel())){
+            query.must(QueryBuilders.termQuery("articleLabel",repositoryQuery.getArticleLabel()));
+        }
+        //4.文章状态 入参是list 实际只有一个元素 0 | 1 termQuery
+        if (CollectionUtils.isNotEmpty(repositoryQuery.getArticleStatus())){
+            query.must(QueryBuilders.termQuery("articleStatus",repositoryQuery.getArticleStatus().get(0)));
+        }
+        //5.source表示来源 后台新增的source==2 前台新增source=1 但是如果是查询前台应该可以查看所有 后台只看后台
+        //只在source=2的时候做term查询
+        if (repositoryQuery.getSource()==2){
+            query.must(QueryBuilders.termQuery("source",repositoryQuery.getSource()));
+        }
+        //6.活动id 非空 termQuery
+        if (repositoryQuery.getActivityId()!=null){
+            query.must(QueryBuilders.termQuery("activityId",repositoryQuery.getActivityId()));
+        }
+        //7.地理位置 lat long 封装到一个location使用 GeoDistanceQuery 100公里
+        if (StringUtils.isNotBlank(repositoryQuery.getLatitude())&&StringUtils.isNotBlank(repositoryQuery.getLongitude())){
+            GeoDistanceQueryBuilder geoQuery = QueryBuilders.geoDistanceQuery("location");
+            geoQuery.distance(100D, DistanceUnit.KILOMETERS);
+            geoQuery.point(Double.valueOf(repositoryQuery.getLatitude()),Double.valueOf(repositoryQuery.getLongitude()));
+            query.must(geoQuery);
+        }
+        //8.起始时间不空 rangeQuery gte
+        if (repositoryQuery.getUpdateStartTime()!=null){
+            query.must(QueryBuilders.rangeQuery("updateTime").gte(repositoryQuery.getUpdateStartTime()));
+        }
+        //9.结束时间不空 rangeQuery lte
+        if (repositoryQuery.getUpdateEndTime()!=null){
+            query.must(QueryBuilders.rangeQuery("updateTime").lte(repositoryQuery.getUpdateEndTime()));
+        }
+        //10 userId 所属文章作者 termQuery
+        if (repositoryQuery.getUserId()!=null){
+            query.must(QueryBuilders.termQuery("userId",repositoryQuery.getUserId()));
+        }
+        //将query交给builder
+        builder.query(query);
     }
 }
