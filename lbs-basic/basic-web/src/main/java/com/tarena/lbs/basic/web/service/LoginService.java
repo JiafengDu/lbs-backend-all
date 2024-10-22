@@ -4,11 +4,14 @@ import com.alibaba.nacos.common.utils.StringUtils;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
+import com.tarena.lbs.basic.web.repository.UserRepository;
 import com.tarena.lbs.common.passport.encoder.JwtEncoder;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
+import com.tarena.lbs.pojo.basic.po.UserPO;
 import com.tarena.lbs.pojo.passport.param.AdminLoginParam;
+import com.tarena.lbs.pojo.passport.param.UserLoginParam;
 import com.tarena.lbs.pojo.passport.vo.LoginVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,8 @@ public class LoginService {
     private AdminRepository adminRepository;
     @Autowired
     private JwtEncoder jwtEncoder;
+    @Autowired
+    private UserRepository userRepository;
     public LoginVO doLogin(AdminLoginParam param) throws BusinessException {
         log.info("后台登录业务处理,入参:{}",param);
         String phone = param.getPhone();
@@ -51,5 +56,25 @@ public class LoginService {
         //也可以使用现成的各种工具 StringUtils好几种 nacos apache-common lombok
         boolean equals = StringUtils.equals(password, accountPassword);
         Asserts.isTrue(!equals,new BusinessException("-2","密码不相等"));
+    }
+
+    public LoginVO userLogin(UserLoginParam param) throws BusinessException {
+        //1 使用phone查询存在 抛异常
+        String phone = param.getPhone();
+        UserPO po=userRepository.getByPhone(phone);
+        Asserts.isTrue(po==null,new BusinessException("-2","该手机号不存在小程序用户"));
+        //2 密码对比 复用之前代码
+        matchPassword(param.getPassword(),po.getPassword());
+        //3 封装UserPO生成创建的jwt
+        String jwt=generateJwt(po);
+        return new LoginVO(jwt,po.getId(),po.getNickName());
+    }
+    private String generateJwt(UserPO po) throws BusinessException {
+        UserPrinciple userPrinciple=new UserPrinciple();
+        userPrinciple.setId(po.getId());
+        userPrinciple.setNickname(po.getNickName());
+        //当前user角色没得选 只有Roles.USER
+        userPrinciple.setRole(Roles.USER);
+        return jwtEncoder.generateToken(userPrinciple);
     }
 }

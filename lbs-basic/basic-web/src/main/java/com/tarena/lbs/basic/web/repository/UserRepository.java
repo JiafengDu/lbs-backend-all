@@ -21,4 +21,10 @@ public class UserRepository {
     public void save(UserPO poParam) {
         userMapper.insert(poParam);
     }
+
+    public UserPO getByPhone(String phone) {
+        QueryWrapper<UserPO> queryWrapper=new QueryWrapper();
+        queryWrapper.eq("phone",phone);
+        return userMapper.selectOne(queryWrapper);
+    }
 }

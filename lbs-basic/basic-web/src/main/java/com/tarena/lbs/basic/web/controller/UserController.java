@@ -4,6 +4,7 @@ import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.basic.web.service.UserService;
 import com.tarena.lbs.pojo.basic.param.UserParam;
+import com.tarena.lbs.pojo.passport.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
