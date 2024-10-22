@@ -4,10 +4,13 @@ import com.tarena.lbs.article.web.service.ArticleService;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
+import com.tarena.lbs.pojo.content.param.ArticleContentParam;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
 import com.tarena.lbs.pojo.content.vo.ArticleVO;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -24,5 +27,12 @@ public class ArticleController {
     public Result<PageResult<ArticleVO>> pageList(ArticleQuery articleQuery)
         throws BusinessException{
         return new Result<>(articleService.pageList(articleQuery));
+    }
+    //提交推文创作 包含前台 和后台
+    @PostMapping("/admin/content/article/insert")
+    public Result<Void> addArticle(ArticleContentParam param)
+        throws BusinessException{
+        articleService.addArticle(param);
+        return Result.success();
     }
 }

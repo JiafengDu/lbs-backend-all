@@ -31,6 +31,8 @@ public class ArticleRepository {
     //使用连接es的客户端
     @Autowired
     private RestHighLevelClient restHighLevelClient;
+    @Autowired
+    private ArticleESRepository articleESRepository;
     //使用client搜索 入参条件 可能是多个非空属性
     //每个属性都可以单独封装一个查询条件 所有非空属性 分装一个复合条件bool
     public List<ArticleSearchEntity> searchArticles(ArticleQuery repositoryQuery) {
@@ -115,5 +117,9 @@ public class ArticleRepository {
         //将query交给builder
         builder.query(query);
         log.info("构造的查询条件:{}",query);
+    }
+
+    public void save(ArticleSearchEntity entity) {
+        articleESRepository.save(entity);
     }
 }
