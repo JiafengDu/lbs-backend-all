@@ -43,4 +43,9 @@ public class ArticleController {
         Set<String> labels=articleService.articleLabels(articleQuery);
         return new Result<>(labels);
     }
+    //利用文档id查询文章详情
+    @GetMapping("/admin/content/article/get")
+    public Result<ArticleVO> articleDetail(String id)throws BusinessException{
+        return new Result<>(articleService.detail(id));
+    }
 }

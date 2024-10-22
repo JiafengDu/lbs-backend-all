@@ -93,7 +93,7 @@ public class ArticleRepository {
         }
         //5.source表示来源 后台新增的source==2 前台新增source=1 但是如果是查询前台应该可以查看所有 后台只看后台
         //只在source=2的时候做term查询
-        if (repositoryQuery.getSource()==2){
+        if (repositoryQuery.getSource()!=null&&repositoryQuery.getSource()==2){
             query.must(QueryBuilders.termQuery("source",repositoryQuery.getSource()));
         }
         //6.活动id 非空 termQuery
@@ -162,5 +162,9 @@ public class ArticleRepository {
         }
         log.info("当前查询的标签集合:{}",labels);
         return labels;
+    }
+
+    public ArticleSearchEntity getArticleById(String id) {
+        return articleESRepository.findById(Integer.valueOf(id)).get();//响应体 文档数据
     }
 }

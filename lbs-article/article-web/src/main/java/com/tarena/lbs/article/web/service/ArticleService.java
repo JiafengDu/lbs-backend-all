@@ -119,4 +119,15 @@ public class ArticleService {
         //没有复杂业务逻辑,直接调用仓储层
         return articleRepository.getArticleLabels(articleQuery);
     }
+
+    public ArticleVO detail(String id) {
+        //调用仓储层拿到es的实体对象
+        ArticleSearchEntity entity=articleRepository.getArticleById(id);
+        ArticleVO vo=null;
+        if (entity!=null){
+            vo=new ArticleVO();
+            BeanUtils.copyProperties(entity,vo);
+        }
+        return vo;
+    }
 }
