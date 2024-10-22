@@ -89,7 +89,7 @@ public class TagService {
             String[] split = tagIds.split(",");
             if (split!=null&&split.length>0){
                 log.info("当前入参 标签id不为空:{}",split);
-                Arrays.stream(split).map(tagId->{
+                poParams=Arrays.stream(split).map(tagId->{
                     UserTagsPO po=new UserTagsPO();
                     po.setUserId(param.getUserId());
                     po.setTagId(Integer.parseInt(tagId));
