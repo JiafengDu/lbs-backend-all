@@ -98,7 +98,10 @@ public class TagService {
             }
         }
         if (CollectionUtils.isNotEmpty(poParams)){
-            //TODO 可用的数据持久层封装 非空的 批量写入 Mybatis-plus也给我们准备了 更多的操作方法
+            //可用的数据持久层封装 非空的 批量写入 Mybatis-plus也给我们准备了 更多的操作方法
+            //saveBatch有2个重载方法 第一个就是一次性批量 写入所有list元素
+            //saveBatch第二个方法 有个属性 int batchSize 如果元素过多,可以分批次写入
+            userTagsRepository.saveBatch(poParams);
         }
         //4.更新用户状态 status=1
         userRepository.updateStatus(param.getUserId(),1);
