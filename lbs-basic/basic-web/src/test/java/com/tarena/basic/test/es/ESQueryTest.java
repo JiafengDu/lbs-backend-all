@@ -52,11 +52,11 @@ public class ESQueryTest {
         //查询条件属性数据比较多 复杂,在java客户端代码中 给我们提供了一个构造器
         SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
         //a.设置分页查询条件 from,size
-        sourceBuilder.from(0).size(10);
+        sourceBuilder.from(0).size(1000);
         //b.查询的数据 默认排序是匹配度评分降序 评分越高 匹配度越好 排序越靠前 但是我们可以不计算平分 使用自定义
-        sourceBuilder.sort("birthday", SortOrder.DESC);
+        //sourceBuilder.sort("birthday", SortOrder.DESC);
         //c.去重条件 一般是做统计使用 去重的字段 如果是文本 不能是text(分词 多个词语) 必须keyword date是文本TEXT?还是numbers?
-        //sourceBuilder.collapse(new CollapseBuilder("gender"));
+        sourceBuilder.collapse(new CollapseBuilder("gender"));
         //d.业务查询的 搜索逻辑 数据query 不同的query功能不同
         MatchAllQueryBuilder query = QueryBuilders.matchAllQuery();
         sourceBuilder.query(query);

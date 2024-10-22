@@ -2,7 +2,9 @@ package com.tarena.lbs.article.web.repository;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import com.tarena.lbs.article.web.service.ArticleService;
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.pojo.content.entity.ArticleSearchEntity;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
 import lombok.extern.slf4j.Slf4j;
@@ -11,18 +13,21 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.collapse.CollapseBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository
@@ -121,5 +126,41 @@ public class ArticleRepository {
 
     public void save(ArticleSearchEntity entity) {
         articleESRepository.save(entity);
+    }
+
+    public Set<String> getArticleLabels(ArticleQuery articleQuery) throws BusinessException {
+        //查询条件 要使用geo_point类型做地理位置范围查询 不能使用repository接口
+        //1.创建一个查询请求
+        SearchRequest request=new SearchRequest("lbs_article");
+        //2.准备查询条件的构造对象builder
+        SearchSourceBuilder sourceBuilder=new SearchSourceBuilder();
+        //3.封装 请求参数 包括query geoDistance 分页 排序 去重
+        GeoDistanceQueryBuilder query = QueryBuilders.geoDistanceQuery("location");
+        //中心点
+        GeoPoint center=new GeoPoint(Double.valueOf(articleQuery.getLatitude()),Double.valueOf(articleQuery.getLongitude()));
+        query.point(center).distance(100d, DistanceUnit.KILOMETERS);
+        sourceBuilder.query(query);
+        //去重 articleLabel字段
+        sourceBuilder.collapse(new CollapseBuilder("articleLabel"));
+        request.source(sourceBuilder);
+        //4.发送请求 解析查询结果 一定是有几个标签返回几个文档 按个解析 形成集合
+        SearchResponse response=null;
+        try {
+            response=restHighLevelClient.search(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            log.error("查询es数据失败",e);
+            throw new BusinessException("-2","查询es数据失败");
+        }
+        //获取响应中包含的文档对象 每个文档都有一个标签 收集
+        SearchHit[] hits = response.getHits().getHits();
+        Set<String> labels=null;
+        if (hits!=null&&hits.length>0){
+            labels=Arrays.stream(hits).map(hit->{
+                //将sourceJson转化成对象 取出 articleLabel属性
+                return JSON.parseObject(hit.getSourceAsString(), ArticleSearchEntity.class).getArticleLabel();
+            }).collect(Collectors.toSet());
+        }
+        log.info("当前查询的标签集合:{}",labels);
+        return labels;
     }
 }

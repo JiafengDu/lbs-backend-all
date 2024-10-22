@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -108,5 +109,10 @@ public class ArticleService {
 
     private void bindPictures(Integer id, ArticleContentParam param) {
         //UNDO 图片的常规业务绑定
+    }
+
+    public Set<String> articleLabels(ArticleQuery articleQuery) {
+        //没有复杂业务逻辑,直接调用仓储层
+        return articleRepository.getArticleLabels(articleQuery);
     }
 }

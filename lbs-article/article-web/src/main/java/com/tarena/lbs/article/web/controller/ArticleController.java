@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 /**
  * 文章业务模块接口
  */
@@ -34,5 +36,11 @@ public class ArticleController {
         throws BusinessException{
         articleService.addArticle(param);
         return Result.success();
+    }
+    //手机端查询范围内的文章标签集合
+    @GetMapping("/admin/content/article/getArticleLabel")
+    public Result<Set<String>> articleLabels(ArticleQuery articleQuery){
+        Set<String> labels=articleService.articleLabels(articleQuery);
+        return new Result<>(labels);
     }
 }
