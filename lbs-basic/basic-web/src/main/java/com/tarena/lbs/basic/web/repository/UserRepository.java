@@ -27,4 +27,8 @@ public class UserRepository {
         queryWrapper.eq("phone",phone);
         return userMapper.selectOne(queryWrapper);
     }
+
+    public UserPO getById(Integer userId) {
+        return userMapper.selectById(userId);
+    }
 }

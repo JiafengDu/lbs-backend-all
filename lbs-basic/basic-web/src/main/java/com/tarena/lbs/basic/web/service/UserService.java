@@ -3,9 +3,12 @@ package com.tarena.lbs.basic.web.service;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.basic.web.repository.UserRepository;
+import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.basic.util.RandomUserName;
+import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.param.UserParam;
 import com.tarena.lbs.pojo.basic.po.UserPO;
+import com.tarena.lbs.pojo.basic.vo.UserVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,5 +45,19 @@ public class UserService {
         //注册时间
         po.setRegTime(new Date());
         return po;
+    }
+
+    public UserVO detail() throws BusinessException {
+        //1.解析jwt 拿到userPrinciple
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        Integer userId = userPrinciple.getId();
+        //2.仓储层查询唯一的po
+        UserPO po=userRepository.getById(userId);
+        Asserts.isTrue(po==null,new BusinessException("-2","用户信息不存在"));
+        //3.转化vo
+        UserVO vo=new UserVO();
+        BeanUtils.copyProperties(po,vo);
+        return vo;
     }
 }
