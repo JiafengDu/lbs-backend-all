@@ -111,7 +111,7 @@ public class ArticleService {
         //UNDO 图片的常规业务绑定
     }
 
-    public Set<String> articleLabels(ArticleQuery articleQuery) {
+    public Set<String> articleLabels(ArticleQuery articleQuery) throws BusinessException {
         //没有复杂业务逻辑,直接调用仓储层
         return articleRepository.getArticleLabels(articleQuery);
     }

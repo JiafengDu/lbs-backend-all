@@ -39,7 +39,7 @@ public class ArticleController {
     }
     //手机端查询范围内的文章标签集合
     @GetMapping("/admin/content/article/getArticleLabel")
-    public Result<Set<String>> articleLabels(ArticleQuery articleQuery){
+    public Result<Set<String>> articleLabels(ArticleQuery articleQuery) throws BusinessException {
         Set<String> labels=articleService.articleLabels(articleQuery);
         return new Result<>(labels);
     }
