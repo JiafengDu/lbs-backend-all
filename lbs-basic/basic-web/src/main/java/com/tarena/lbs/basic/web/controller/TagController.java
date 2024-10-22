@@ -41,4 +41,11 @@ public class TagController {
         tagService.bindUserTags(param);
         return Result.success();
     }
+    //给人群创建时,提供的标签可选数据
+    @GetMapping("/basic/tagLibrary/info/user/tags")
+    public Result<Map<String, List<TagVO>>> getGroupTags(){
+        //考虑 既然标签结构 文章和用户相同 后续还会查询用户标签 tagType=0|1
+        Map<String,List<TagVO>> tags=tagService.getTagsByType(1);
+        return new Result<>(tags);
+    }
 }
