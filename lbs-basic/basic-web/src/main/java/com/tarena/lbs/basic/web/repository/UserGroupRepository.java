@@ -19,4 +19,8 @@ public class UserGroupRepository {
         //select * from lbs_user_group where business_id=#{}
         return userGroupMapper.selectList(queryWrapper);
     }
+
+    public void save(UserGroupPO po) {
+        userGroupMapper.insert(po);
+    }
 }

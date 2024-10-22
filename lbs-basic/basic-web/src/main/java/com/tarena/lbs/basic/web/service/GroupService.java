@@ -8,6 +8,7 @@ import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.UserGroupRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.basic.param.UserGroupParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.UserGroupPO;
 import com.tarena.lbs.pojo.basic.vo.UserGroupVO;
@@ -15,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,5 +51,21 @@ public class GroupService {
         }
         voPage.setObjects(vos);
         return voPage;
+    }
+
+    public void save(UserGroupParam param) throws BusinessException {
+        //1.封装一个po对象 该补充的都补充 businessId 利用认证对象获取 补充创建时间
+        UserGroupPO po=new UserGroupPO();
+        BeanUtils.copyProperties(param,po);
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        AdminPO adminPO = adminRepository.getAdminById(userPrinciple.getId());
+        Asserts.isTrue(adminPO==null,new BusinessException("-2","商家账号信息不存在"));
+        Integer businessId=adminPO.getBusinessId();
+
+        po.setBusinessId(businessId);
+        po.setCreateAt(new Date());
+        //2.调用仓储层 save新增
+        userGroupRepository.save(po);
     }
 }
