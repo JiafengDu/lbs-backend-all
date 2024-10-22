@@ -1,14 +1,25 @@
 package com.tarena.lbs.basic.web.service;
 
+import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.tarena.lbs.base.common.utils.Asserts;
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.basic.web.repository.TagRepository;
+import com.tarena.lbs.basic.web.repository.UserRepository;
+import com.tarena.lbs.basic.web.repository.UserTagsRepository;
+import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
+import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.basic.param.UserTagsParam;
 import com.tarena.lbs.pojo.basic.po.TagLibraryPO;
+import com.tarena.lbs.pojo.basic.po.UserTagsPO;
 import com.tarena.lbs.pojo.basic.vo.TagLibraryVO;
 import com.tarena.lbs.pojo.basic.vo.TagVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +30,10 @@ import java.util.stream.Collectors;
 public class TagService {
     @Autowired
     private TagRepository tagRepository;
+    @Autowired
+    private UserTagsRepository userTagsRepository;
+    @Autowired
+    private UserRepository userRepository;
     public Map<String, List<TagVO>> getTagsByType(Integer tagType) {
         //1.从数据层 把素有的文章的标签查询 List
         List<TagLibraryPO> pos=tagRepository.getTagsBytType(tagType);
@@ -56,5 +71,37 @@ public class TagService {
             mapVo.put(firstTagName, value);
         });
         return mapVo;
+    }
+
+    public void bindUserTags(UserTagsParam param) throws BusinessException {
+        //1.拿到登录用户的id
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证失败"));
+        param.setUserId(userPrinciple.getId());
+        //2.本次是一个新增数据操作 保证幂等 直接删除旧数据
+        userTagsRepository.deleteByUserId(param.getUserId());
+        //3.封装 实现批量新增
+        //比如 userId=1 tagIds=1,2,3 封装3条数据到外键表1-1 1-2 1-3
+        List<UserTagsPO> poParams=null;
+        //从入参param 拿到tagIds 解析
+        String tagIds = param.getTagIds();
+        if (StringUtils.isNotEmpty(tagIds)){
+            String[] split = tagIds.split(",");
+            if (split!=null&&split.length>0){
+                log.info("当前入参 标签id不为空:{}",split);
+                Arrays.stream(split).map(tagId->{
+                    UserTagsPO po=new UserTagsPO();
+                    po.setUserId(param.getUserId());
+                    po.setTagId(Integer.parseInt(tagId));
+                    return po;
+                }).collect(Collectors.toList());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(poParams)){
+            //TODO 可用的数据持久层封装 非空的 批量写入 Mybatis-plus也给我们准备了 更多的操作方法
+        }
+        //4.更新用户状态 status=1
+        userRepository.updateStatus(param.getUserId(),1);
+
     }
 }

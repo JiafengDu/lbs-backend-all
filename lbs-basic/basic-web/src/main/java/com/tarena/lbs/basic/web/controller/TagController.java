@@ -1,7 +1,9 @@
 package com.tarena.lbs.basic.web.controller;
 
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.basic.web.service.TagService;
+import com.tarena.lbs.pojo.basic.param.UserTagsParam;
 import com.tarena.lbs.pojo.basic.vo.TagVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,5 +32,13 @@ public class TagController {
         //考虑 既然标签结构 文章和用户相同 后续还会查询用户标签 tagType=0|1
         Map<String,List<TagVO>> tags=tagService.getTagsByType(1);
         return new Result<>(tags);
+    }
+
+    //用户提交绑定关联所选标签
+    @GetMapping("/basic/user/tag")
+    public Result<Void> bindUserTags(UserTagsParam param)
+        throws BusinessException{
+        tagService.bindUserTags(param);
+        return Result.success();
     }
 }

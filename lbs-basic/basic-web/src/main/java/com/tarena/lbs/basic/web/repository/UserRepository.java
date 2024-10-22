@@ -31,4 +31,12 @@ public class UserRepository {
     public UserPO getById(Integer userId) {
         return userMapper.selectById(userId);
     }
+
+    public void updateStatus(Integer userId, int i) {
+        //update lbs_user set status=1 where user_id=#{}
+        UserPO poParam=new UserPO();
+        poParam.setId(userId);
+        poParam.setStatus(i);
+        userMapper.updateById(poParam);
+    }
 }
