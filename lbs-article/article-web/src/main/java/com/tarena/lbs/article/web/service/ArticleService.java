@@ -41,9 +41,13 @@ public class ArticleService {
         Integer source = articleQuery.getSource();
         if (source==1){
             log.info("文章列表查询 source来源是 前台 query:{}",articleQuery);
-            //TODO
-            //手机端查询 query条件携带的数据 包括pageNo pageSize
-            //包括业务条件2种 第一个就是 lat long地理位置 第二文章标签
+            //入参的标签
+            repositoryQuery.setArticleLabel(articleQuery.getArticleLabel());
+            //地理位置
+            repositoryQuery.setLongitude(articleQuery.getLongitude());
+            repositoryQuery.setLatitude(articleQuery.getLatitude());
+            //前端要查询的是 status=1
+            repositoryQuery.setArticleStatus(CollectionUtils.list(1));
         }else{
             log.info("文章列表查询 source来源是 后台 query:{}",articleQuery);
             //后台管理1 文章标题 2 文章状态 3 文章分类id 4 文章创建 start和end 5 文章所属的userId;
