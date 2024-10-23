@@ -15,6 +15,9 @@ import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.po.CouponCodePO;
 import com.tarena.lbs.pojo.marketing.po.CouponPO;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
+import com.tarena.lbs.pojo.stock.param.CouponStockParam;
+import com.tarena.lbs.pojo.stock.po.CouponStockPO;
+import com.tarena.lbs.stock.api.StockApi;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -22,6 +25,7 @@ import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -39,6 +43,8 @@ public class CouponService {
     private CouponCodeRepository couponCodeRepository;
     @DubboReference
     private BasicApi basicApi;
+    @DubboReference
+    private StockApi stockApi;
     public PageResult<CouponVO> pageList() throws BusinessException {
         //1.解析认证对象 拿到UserPrinciple
         UserPrinciple userPrinciple=parseUserPrinciple();
@@ -80,7 +86,7 @@ public class CouponService {
         Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
         return userPrinciple;
     }
-
+    @Transactional(rollbackFor = Exception.class)
     public void save(CouponParam couponParam) throws BusinessException {
         //1.拿到认证对象
         UserPrinciple userPrinciple=parseUserPrinciple();
@@ -100,8 +106,15 @@ public class CouponService {
         initCouponStock(poParam);
     }
 
-    private void initCouponStock(CouponPO poParam) {
-        //TODO 同步生成库存
+    private void initCouponStock(CouponPO poParam) throws BusinessException {
+        //使用优惠券 组织一个dubbo调用的入参
+        CouponStockParam param=new CouponStockParam();
+        param.setCouponId(poParam.getId());
+        param.setBusinessId(poParam.getBusinessId());
+        param.setNum(poParam.getMaxUsageLimit());
+        Boolean result = stockApi.initCouponStock(param);
+        //如果调用结果是false 初始化库存没有成功 库存和优惠券数据一致性问题
+        Asserts.isTrue(!result,new BusinessException("-2","库存初始化失败"));
     }
 
     private List<CouponCodePO> assembleCouponCodePos(CouponPO poParam) {
