@@ -10,6 +10,7 @@ import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.marketing.web.repository.CouponRepository;
 import com.tarena.lbs.marketing.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.pojo.basic.dto.AdminDTO;
+import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.po.CouponPO;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
 import lombok.extern.slf4j.Slf4j;
@@ -69,5 +70,9 @@ public class CouponService {
         UserPrinciple userPrinciple = AuthenticationContextUtils.get();
         Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
         return userPrinciple;
+    }
+
+    public void save(CouponParam couponParam) {
+        //TODO
     }
 }
