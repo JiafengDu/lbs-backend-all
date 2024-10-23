@@ -19,4 +19,8 @@ public class CouponRepository {
         queryWrapper.eq("business_id", businessId);
         return couponMapper.selectList(queryWrapper);
     }
+
+    public void save(CouponPO poParam) {
+        couponMapper.insert(poParam);
+    }
 }
