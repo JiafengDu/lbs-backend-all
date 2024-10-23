@@ -1,5 +1,6 @@
 package com.tarena.lbs.pojo.marketing.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
 import java.util.List;
@@ -26,9 +27,11 @@ public class ActivityVO {
     private Integer channelType;
 
     @ApiModelProperty(value = "活动开始时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startDate;
 
     @ApiModelProperty(value = "活动结束时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endDate;
 
     @ApiModelProperty(value = "活动描述")
@@ -74,8 +77,10 @@ public class ActivityVO {
     private Integer businessId;
 
     @ApiModelProperty(value = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createAt;
 
     @ApiModelProperty(value = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateAt;
 }
