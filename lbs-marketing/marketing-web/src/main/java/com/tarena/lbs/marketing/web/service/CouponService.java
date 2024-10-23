@@ -94,8 +94,8 @@ public class CouponService {
         CouponPO poParam=assembleCouponPO(couponParam,businessId);
         couponRepository.save(poParam);
         //5.同步生成当前优惠券的券码数据
-        List<CouponCodePO> codePoParams=assembleCouponCodePos(poParam);
-        couponCodeRepository.saveBatch(codePoParams,100);
+        //List<CouponCodePO> codePoParams=assembleCouponCodePos(poParam);
+        //couponCodeRepository.saveBatch(codePoParams,100);
         //6.同步库存
         initCouponStock(poParam);
     }
