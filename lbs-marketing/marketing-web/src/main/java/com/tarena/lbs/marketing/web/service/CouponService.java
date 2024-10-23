@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CouponService {
     public PageResult<CouponVO> pageList() {
+        //1.解析认证对象 拿到UserPrinciple
         return null;
     }
 }
