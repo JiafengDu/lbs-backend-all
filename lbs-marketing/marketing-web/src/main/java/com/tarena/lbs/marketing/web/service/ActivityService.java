@@ -37,7 +37,7 @@ public class ActivityService {
     private AttachApi attachApi;
     public void activitySave(ActivityParam param) throws BusinessException, ParseException {
         //1.解析认证
-        UserPrinciple userPrinciple = LbsSecurityContenxt.getLoginToken();
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
         Asserts.isTrue(userPrinciple==null, new BusinessException("-2","用户认证解析失败"));
         //2.查询商家详情
         AdminDTO adminDto = basicApi.getAdminDetail(userPrinciple.getId());

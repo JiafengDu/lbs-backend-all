@@ -30,6 +30,7 @@ public class ActivityPO implements Serializable {
     private String describes;
 
     @TableField("img_ids")
+    //1,2,3,4,5
     private String imgIds;
 
     @TableField("shop_ids")
