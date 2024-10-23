@@ -19,4 +19,7 @@ public class ActivityRepository {
         queryWrapper.eq("business_id", businessId);
         return activityMapper.selectList(queryWrapper);
     }
+    public void save(ActivityPO poParam) {
+        activityMapper.insert(poParam);
+    }
 }
