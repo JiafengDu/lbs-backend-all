@@ -10,6 +10,7 @@ import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.basic.dto.AdminDTO;
 import com.tarena.lbs.pojo.basic.param.AdminParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
@@ -29,6 +30,16 @@ public class AdminService {
     private AdminRepository adminRepository;
     @Autowired
     private BusinessRepository businessRepository;
+    public AdminDTO detail(Integer id){
+        AdminPO adminPO = adminRepository.getAdminById(id);
+        AdminDTO dto=null;
+        if (adminPO!=null){
+            dto=new AdminDTO();
+            BeanUtils.copyProperties(adminPO,dto);
+        }
+        return dto;
+
+    }
     public AdminVO detail() throws BusinessException {
         //1.作为过滤器的下游代码 可以直接获取threadLocal里的认证对象
         UserPrinciple userPrinciple = AuthenticationContextUtils.get();

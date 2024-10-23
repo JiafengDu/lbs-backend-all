@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan("com.tarena.lbs.marketing.web.mapper")
-//@EnableDubbo
+@EnableDubbo
 public class MarketingWeb {
     public static void main(String[] args) {
         SpringApplication.run(MarketingWeb.class, args);
