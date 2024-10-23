@@ -20,6 +20,7 @@
         <module>lbs-basic</module>
         <module>lbs-gateway</module>
         <module>lbs-article</module>
+        <module>lbs-marketing</module>
     </modules>
 
     <properties>
