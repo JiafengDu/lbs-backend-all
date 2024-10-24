@@ -63,4 +63,10 @@ public class StoreRepository {
                 .in("area_id", cityIdList);*/
 
     }
+
+    public List<StorePO> getStoresByBusinessId(Integer businessId) {
+        QueryWrapper<StorePO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("business_id", businessId);
+        return storeMapper.selectList(queryWrapper);
+    }
 }

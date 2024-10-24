@@ -8,6 +8,7 @@ import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusiStoreVO;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 处理和商家相关的接口功能
  */
 @RestController
+@Slf4j
 public class BusinessController {
     @Autowired
     private BusinessService businessService;
@@ -39,7 +41,10 @@ public class BusinessController {
     @GetMapping("/basic/business/info/detail/{id}")
     public Result<BusiStoreVO> busiStoreDetail(@PathVariable("id") Integer businessId)
         throws BusinessException {
+        Long start=System.currentTimeMillis();
         BusiStoreVO vo=businessService.busiStoreDetail(businessId);
+        Long end=System.currentTimeMillis();
+        log.info("商家详情查询耗时:{}MS",end-start);
         return new Result<>(vo);
     }
 }

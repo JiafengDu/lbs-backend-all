@@ -2,6 +2,7 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import com.tarena.lbs.attach.api.AttachApi;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
@@ -9,6 +10,7 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.constant.BusinessTypes;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
+import com.tarena.lbs.basic.web.repository.StoreRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
@@ -16,9 +18,11 @@ import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
+import com.tarena.lbs.pojo.basic.po.StorePO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusiStoreVO;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
+import com.tarena.lbs.pojo.basic.vo.StoreVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
@@ -29,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +44,8 @@ public class BusinessService {
     private BusinessRepository businessRepository;
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private StoreRepository storeRepository;
     //注入attachApi
     @DubboReference
     private AttachApi attachApi;
@@ -187,10 +195,56 @@ public class BusinessService {
         Asserts.isTrue(loginRole!=role,new BusinessException("-2","用户角色权限不足"));
     }
 
-    public BusiStoreVO busiStoreDetail(Integer businessId) {
-        //TODO 查询2批数据 一批是商家详情 一批是商家下的店铺列表
-        //select * from lbs_business where id=#{}
-        //select * from lbs_store where business_id=#{}
+    public BusiStoreVO busiStoreDetail(Integer businessId) throws BusinessException{
+        //调用多线程 并发执行下面的2个方法 把并行的方法各自放到一个容器线程池的线程封装方法执行
+        CompletableFuture<BusiStoreVO> businessFuture
+                = CompletableFuture.supplyAsync(() -> {
+            return getBusiVO(businessId);
+        });
+        CompletableFuture<List<StoreVO>> storesFuture
+                = CompletableFuture.supplyAsync(() -> {
+            return getStoreVOS(businessId);
+        });
+        //每一个上述执行的方法 都是异步执行,需要线程阻塞的逻辑 获取他们的执行结果
+        CompletableFuture<Void> allFuture = CompletableFuture.allOf(businessFuture, storesFuture);
+        //从异步线程返回值中获取结果
+        try{
+            BusiStoreVO vo = businessFuture.get();
+            List<StoreVO> storeVOS = storesFuture.get();
+            if (vo!=null){
+                vo.setStoreVOList(storeVOS);
+                return vo;
+            }
+        }catch (Exception e){
+            log.error("并发调用查询失败",e);
+        }
         return null;
+    }
+    private List<StoreVO> getStoreVOS(Integer businessId){
+        //select * from lbs_store where business_id=#{}
+        List<StorePO> storePOS=storeRepository.getStoresByBusinessId(businessId);
+        //如果商家下有店铺
+        List<StoreVO> storeVos=null;
+        if (CollectionUtils.isNotEmpty(storePOS)){
+            storeVos=storePOS.stream().map(po->{
+                StoreVO vo1=new StoreVO();
+                BeanUtils.copyProperties(po,vo1);
+                return vo1;
+            }).collect(Collectors.toList());
+        }
+        return storeVos;
+    }
+    //是一个线程可以执行的方法 返回值 2种 一种vo非空 一种vo为空
+    private BusiStoreVO getBusiVO(Integer businessId){
+        //查询2批数据 一批是商家详情 一批是商家下的店铺列表
+        //select * from lbs_business where id=#{}
+        BusinessPO businessPO = businessRepository.getBusinessById(businessId);
+        BusiStoreVO vo=null;
+        if (businessPO!=null){
+            //使用上述2个返回值 封装vo
+            vo=new BusiStoreVO();
+            BeanUtils.copyProperties(businessPO,vo);
+        }
+        return vo;
     }
 }
