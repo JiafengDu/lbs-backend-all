@@ -3,9 +3,10 @@ package com.tarena.lbs.marketing.web.rpc;
 import com.tarena.lbs.marketing.api.MarketingApi;
 import com.tarena.lbs.marketing.web.service.ActivityService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
+@DubboService
 @Component
 @Slf4j
 public class MarketingApiImpl implements MarketingApi {

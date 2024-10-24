@@ -6,16 +6,37 @@
 <mapper namespace="com.tarena.lbs.basic.web.mapper.UserGroupMapper">
     <!--拼接一个 查询 用户人群 sql-->
     <select id="findUserGroupIdsByTagIdsAndBizId" resultType="integer">
-        select `id` from `tarena_lbs_basic`.`lbs_user_group`
+        select id from tarena_lbs_basic.lbs_user_group
         <where>
-            <if test="businessId!=null">
-                `business_id`=#{businessId} and
+            <if test="businessId != null">
+                business_id = #{businessId}
+                <if test="tagIds != null and tagIds.size() > 0">
+                    AND (
+                </if>
             </if>
-            <if test="tagIds!=null and tagIds.size()>0">
-                <foreach collection="tagIds" item="tagId" open="(" close=")">
-                    FIND_IN_SET(#{tagId},`tag_ids`) OR
+            <if test="tagIds != null and tagIds.size() > 0">
+                <foreach collection="tagIds" item="tagId" separator=" OR ">
+                    FIND_IN_SET(#{tagId}, tag_ids)
                 </foreach>
+                <if test="businessId != null">
+                    )
+                </if>
             </if>
         </where>
     </select>
+
+    <!--拼接一个 查询 用户人群 sql-->
+    <!--<select id="findUserGroupIdsByTagIdsAndBizId" resultType="integer">
+        select id from tarena_lbs_basic.lbs_user_group
+        <where>
+            <if test="businessId!=null">
+                business_id=#{businessId} and
+            </if>
+            <if test="tagIds!=null and tagIds.size()>0">
+                <foreach collection="tagIds" item="tagId" open="(" close=")">
+                    FIND_IN_SET(#{tagId},tag_ids) OR
+                </foreach>
+            </if>
+        </where>
+    </select>-->
 </mapper>
