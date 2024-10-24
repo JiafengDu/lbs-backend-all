@@ -27,9 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +49,9 @@ public class BusinessService {
     private AdminRepository adminRepository;
     @Autowired
     private StoreRepository storeRepository;
+    @Resource
+    @Qualifier("myExecutor")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     //注入attachApi
     @DubboReference
     private AttachApi attachApi;
@@ -200,11 +206,11 @@ public class BusinessService {
         CompletableFuture<BusiStoreVO> businessFuture
                 = CompletableFuture.supplyAsync(() -> {
             return getBusiVO(businessId);
-        });
+        },threadPoolTaskExecutor);
         CompletableFuture<List<StoreVO>> storesFuture
                 = CompletableFuture.supplyAsync(() -> {
             return getStoreVOS(businessId);
-        });
+        },threadPoolTaskExecutor);
         //每一个上述执行的方法 都是异步执行,需要线程阻塞的逻辑 获取他们的执行结果
         CompletableFuture<Void> allFuture = CompletableFuture.allOf(businessFuture, storesFuture);
         //从异步线程返回值中获取结果
