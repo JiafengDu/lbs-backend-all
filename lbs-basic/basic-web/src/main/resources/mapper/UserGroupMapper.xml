@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tarena.lbs.basic.web.mapper.UserGroupMapper">
+    <!--拼接一个 查询 用户人群 sql-->
+    <select id="findUserGroupIdsByTagIdsAndBizId" resultType="integer">
+        select `id` from `tarena_lbs_basic`.`lbs_user_group`
+        <where>
+            <if test="businessId!=null">
+                `business_id`=#{businessId} and
+            </if>
+            <if test="tagIds!=null and tagIds.size()>0">
+                <foreach collection="tagIds" item="tagId" open="(" close=")">
+                    FIND_IN_SET(#{tagId},`tag_ids`) OR
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

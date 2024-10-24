@@ -6,6 +6,7 @@ import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.UserGroupRepository;
+import com.tarena.lbs.basic.web.repository.UserTagsRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.param.UserGroupParam;
@@ -26,6 +27,8 @@ public class GroupService {
     private AdminRepository adminRepository;
     @Autowired
     private UserGroupRepository userGroupRepository;
+    @Autowired
+    private UserTagsRepository userTagsRepository;
     public PageResult<UserGroupVO> pageList() throws BusinessException {
         //1.封装一个分页假数据 pageNo pageSize total 装配一下所有list
         PageResult<UserGroupVO> voPage=new PageResult<>();
@@ -67,5 +70,17 @@ public class GroupService {
         po.setCreateAt(new Date());
         //2.调用仓储层 save新增
         userGroupRepository.save(po);
+    }
+
+    public List<Integer> getUserGroups(Integer userId, Integer businessId) {
+        //1.先试用userId查询 user所关联的所有标签id
+        List<Integer> userTagIds=null;
+        userTagIds=userTagsRepository.getUserTagsByUserId(userId);
+        //2.在使用这个标签id的集合 查询所有包含其中至少一个标签的人群分组 满足businessId
+        List<Integer> userGroupIds=null;
+        if (CollectionUtils.isNotEmpty(userTagIds)){
+            userGroupIds=userGroupRepository.getUserGroupsByTagIdsAndBusinessId(userTagIds,businessId);
+        }
+        return userGroupIds;//有可能是空
     }
 }

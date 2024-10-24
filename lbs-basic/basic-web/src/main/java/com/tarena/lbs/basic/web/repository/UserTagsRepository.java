@@ -1,11 +1,15 @@
 package com.tarena.lbs.basic.web.repository;
 
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarena.lbs.basic.web.mapper.UserTagsMapper;
 import com.tarena.lbs.pojo.basic.po.UserTagsPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * ServiceImpl 是mybatis-plus做的持久层上层封装
@@ -24,5 +28,17 @@ public class UserTagsRepository  extends ServiceImpl<UserTagsMapper, UserTagsPO>
         QueryWrapper query=new QueryWrapper();
         query.eq("user_id",userId);
         userTagsMapper.delete(query);
+    }
+
+    public List<Integer> getUserTagsByUserId(Integer userId) {
+        //select * from lbs_user_tags where user_id=#{userId}
+        QueryWrapper<UserTagsPO> query=new QueryWrapper<>();
+        query.eq("user_id",userId);
+        List<UserTagsPO> pos = userTagsMapper.selectList(query);
+        if (CollectionUtils.isNotEmpty(pos)){
+            return pos.stream().map(po->{return po.getTagId();}).collect(Collectors.toList());
+        }else{
+            return null;
+        }
     }
 }

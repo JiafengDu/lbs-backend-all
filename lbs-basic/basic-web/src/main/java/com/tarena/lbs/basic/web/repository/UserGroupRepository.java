@@ -23,4 +23,14 @@ public class UserGroupRepository {
     public void save(UserGroupPO po) {
         userGroupMapper.insert(po);
     }
+
+    public List<Integer> getUserGroupsByTagIdsAndBusinessId(List<Integer> userTagIds, Integer businessId) {
+        //入参 是一个数组[1,3] 还有一个商家id 49
+        /*
+        select id from lbs_user_group where business_id=49
+        and (FIND_IN_SET(1,tag_ids) or FIND_IN_SET(3,tag_ids))
+         */
+        return userGroupMapper.findUserGroupIdsByTagIdsAndBizId(userTagIds,businessId);
+
+    }
 }
