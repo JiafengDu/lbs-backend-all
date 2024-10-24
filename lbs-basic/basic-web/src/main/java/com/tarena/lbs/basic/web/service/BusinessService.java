@@ -17,6 +17,7 @@ import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
+import com.tarena.lbs.pojo.basic.vo.BusiStoreVO;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -184,5 +185,12 @@ public class BusinessService {
         Roles loginRole = userPrinciple.getRole();
         //断言不相等 抛异常
         Asserts.isTrue(loginRole!=role,new BusinessException("-2","用户角色权限不足"));
+    }
+
+    public BusiStoreVO busiStoreDetail(Integer businessId) {
+        //TODO 查询2批数据 一批是商家详情 一批是商家下的店铺列表
+        //select * from lbs_business where id=#{}
+        //select * from lbs_store where business_id=#{}
+        return null;
     }
 }

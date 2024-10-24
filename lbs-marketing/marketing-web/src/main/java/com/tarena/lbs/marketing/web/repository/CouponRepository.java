@@ -23,4 +23,8 @@ public class CouponRepository {
     public void save(CouponPO poParam) {
         couponMapper.insert(poParam);
     }
+
+    public CouponPO getCouponById(Integer id) {
+        return couponMapper.selectById(id);
+    }
 }

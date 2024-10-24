@@ -8,9 +8,7 @@ import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 处理和优惠券数据业务有关的接口
@@ -33,5 +31,11 @@ public class CouponController {
         Long end=System.currentTimeMillis();
         log.info("新增优惠券发行量:{},时间消耗:{}MS",couponParam.getMaxUsageLimit(),end-start);
         return Result.success();
+    }
+    //使用优惠券iD查询优惠券详情
+    @GetMapping("/admin/marketing/coupon/info/detail/{id}")
+    public Result<CouponVO> detail(@PathVariable("id") Integer id)
+        throws BusinessException{
+        return new Result<>(couponService.detail(id));
     }
 }

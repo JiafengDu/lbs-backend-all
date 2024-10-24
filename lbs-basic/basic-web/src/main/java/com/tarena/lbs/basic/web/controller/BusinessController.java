@@ -6,12 +6,10 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.service.BusinessService;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
+import com.tarena.lbs.pojo.basic.vo.BusiStoreVO;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 处理和商家相关的接口功能
@@ -36,6 +34,13 @@ public class BusinessController {
     public Result<Void> save(@RequestBody BusinessParam param) throws BusinessException {
         businessService.save(param);
         return Result.success();//code=0 success=true
+    }
+    //商家的业务中 活动查询商家 和旗下店铺列表封装
+    @GetMapping("/basic/business/info/detail/{id}")
+    public Result<BusiStoreVO> busiStoreDetail(@PathVariable("id") Integer businessId)
+        throws BusinessException {
+        BusiStoreVO vo=businessService.busiStoreDetail(businessId);
+        return new Result<>(vo);
     }
 }
 

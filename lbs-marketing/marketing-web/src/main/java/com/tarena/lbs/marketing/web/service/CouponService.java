@@ -169,4 +169,19 @@ public class CouponService {
         }
         return po;
     }
+
+    public CouponVO detail(Integer id) {
+        //仓储层查询 对应的po
+        CouponPO po=couponRepository.getCouponById(id);
+        return assembleCouponVO(po);
+    }
+
+    private CouponVO assembleCouponVO(CouponPO po) {
+        CouponVO vo=null;
+        if (po!=null){
+            vo=new CouponVO();
+            BeanUtils.copyProperties(po,vo);
+        }
+        return vo;
+    }
 }
