@@ -8,11 +8,13 @@ import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.common.content.utils.SequenceGenerator;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.marketing.api.MarketingApi;
 import com.tarena.lbs.pojo.content.entity.ArticleSearchEntity;
 import com.tarena.lbs.pojo.content.param.ArticleContentParam;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
 import com.tarena.lbs.pojo.content.vo.ArticleVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 public class ArticleService {
     @Autowired
     private ArticleRepository articleRepository;
+    @DubboReference
+    private MarketingApi marketingApi;
     public PageResult<ArticleVO> pageList(ArticleQuery articleQuery) throws BusinessException {
         //1.准备返回值
         PageResult<ArticleVO> voPage=new PageResult<>();
@@ -120,14 +124,43 @@ public class ArticleService {
         return articleRepository.getArticleLabels(articleQuery);
     }
 
-    public ArticleVO detail(String id) {
-        //调用仓储层拿到es的实体对象
-        ArticleSearchEntity entity=articleRepository.getArticleById(id);
+    public ArticleVO detail(String id) throws BusinessException {
+        //1.拿到登录用户的id
+        Integer userId=getUserId();
+        //2.调用仓储层拿到es的实体对象
+        ArticleSearchEntity articleEntity=articleRepository.getArticleById(id);
+        Integer activityId = articleEntity.getActivityId();
+        //3.判断 当前文章 有没有携带活动
+        if (activityId!=null){
+            log.info("用户:{},文章:{},携带了活动:{}",userId,id,activityId);
+            //4.远程调用 活动 根据返回结果 决定是否将activityId返回给客户端
+            Boolean result = marketingApi.activityVisible(userId, activityId);
+            if (!result){
+                log.info("用户:{},不符合活动目标人群",userId);
+                articleEntity.setActivityId(null);
+            }
+        }else{
+            log.info("用户:{},文章:{},没有携带活动",userId,id);
+        }
+        ArticleVO vo=assembleArticleVO(articleEntity);
+        return vo;
+    }
+
+    private ArticleVO assembleArticleVO(ArticleSearchEntity articleEntity) {
         ArticleVO vo=null;
-        if (entity!=null){
+        if (articleEntity!=null){
             vo=new ArticleVO();
-            BeanUtils.copyProperties(entity,vo);
+            BeanUtils.copyProperties(articleEntity,vo);
         }
         return vo;
+    }
+
+    private Integer getUserId() throws BusinessException {
+        //1.解析
+        //2.断言
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        //3.返回
+        return userPrinciple.getId();
     }
 }
