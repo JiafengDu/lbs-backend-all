@@ -7,9 +7,7 @@ import com.tarena.lbs.marketing.web.service.ActivityService;
 import com.tarena.lbs.pojo.marketing.param.ActivityParam;
 import com.tarena.lbs.pojo.marketing.vo.ActivityVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 
@@ -33,4 +31,11 @@ public class ActivityController {
         activityService.activitySave(param);
         return Result.success();
     }
+    //文章中查看活动的详情
+    @GetMapping("/admin/marketing/marketingActivity/info/detail/{id}")
+    public Result<ActivityVO> activityDetail(@PathVariable("id") Integer id)
+        throws BusinessException {
+        return new Result<>(activityService.detail(id));
+    }
+
 }

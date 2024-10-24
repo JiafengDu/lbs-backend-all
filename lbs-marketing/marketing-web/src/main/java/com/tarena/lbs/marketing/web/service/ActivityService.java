@@ -10,7 +10,9 @@ import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.common.security.utils.LbsSecurityContenxt;
 import com.tarena.lbs.marketing.web.repository.ActivityRepository;
 import com.tarena.lbs.marketing.web.utils.AuthenticationContextUtils;
+import com.tarena.lbs.pojo.attach.dto.AttachDTO;
 import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
+import com.tarena.lbs.pojo.attach.query.AttachQuery;
 import com.tarena.lbs.pojo.basic.dto.AdminDTO;
 import com.tarena.lbs.pojo.marketing.param.ActivityParam;
 import com.tarena.lbs.pojo.marketing.po.ActivityPO;
@@ -20,6 +22,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -144,5 +147,40 @@ public class ActivityService {
             log.info("用户:{},没有所属人群",userId);
             return false;
         }
+    }
+    @Value("${url.prefix}")
+    private String urlPrefix;
+    public ActivityVO detail(Integer id) {
+        ActivityVO vo=null;
+        //1.使用id查询活动po
+        ActivityPO po = activityRepository.getActivityById(id);
+        //2.活动po不为空封装vo
+        if (po!=null){
+            vo = new ActivityVO();
+            BeanUtils.copyProperties(po,vo);
+            //3.调用图片 获取当前活动的图片连接地址的list
+            assembleVoPictures(po,vo);
+        }
+        return vo;
+    }
+
+    private void assembleVoPictures(ActivityPO po, ActivityVO vo) {
+        //1.查询当前活动 bizId=activityid bizType=700 imgId 拼接url地址的fileUuid
+        AttachQuery attachQuery=new AttachQuery();
+        attachQuery.setBusinessId(po.getId());
+        attachQuery.setBusinessType(700);
+        List<AttachDTO> pictureDtos = attachApi.getAttachInfoByParam(attachQuery);
+        //包含了当前活动业务数据所关联的所有图片详情 需要解析拼接url地址
+        List<String> urls=null;
+        //2.循环拼接url
+        if (CollectionUtils.isNotEmpty(pictureDtos)){
+            urls=pictureDtos.stream().map(dto->{
+                String fileUuid = dto.getFileUuid();
+                return urlPrefix+fileUuid;
+            }).collect(Collectors.toList());
+            log.info("活动:{},绑定图片urls:{}",po.getId(),urls);
+        }
+        vo.setImgPics(urls);
+
     }
 }

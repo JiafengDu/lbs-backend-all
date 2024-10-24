@@ -9,3 +9,5 @@ spring:
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
+url:
+  prefix: http://localhost:9081/static/
