@@ -135,7 +135,7 @@ public class ActivityService {
         }
         //2.需要远程调用 根据 userId查询他所说的所有人群id集合
         List<Integer> userGroupIds=null;
-        //TODO 调用basic 把userGroupIds的值 填充
+        userGroupIds=basicApi.getUserGroupIds(userId,po.getBusinessId());
         if (CollectionUtils.isNotEmpty(userGroupIds)){
             log.info("用户:{},所属人群:{}",userId,userGroupIds);
             //4.判断当前活动的目标人群是否在所属人群范围内
