@@ -22,4 +22,8 @@ public class ActivityRepository {
     public void save(ActivityPO poParam) {
         activityMapper.insert(poParam);
     }
+
+    public ActivityPO getActivityById(Integer activityId) {
+        return activityMapper.selectById(activityId);
+    }
 }

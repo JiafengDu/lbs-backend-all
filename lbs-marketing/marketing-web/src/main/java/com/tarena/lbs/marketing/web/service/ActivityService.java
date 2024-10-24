@@ -15,6 +15,7 @@ import com.tarena.lbs.pojo.basic.dto.AdminDTO;
 import com.tarena.lbs.pojo.marketing.param.ActivityParam;
 import com.tarena.lbs.pojo.marketing.po.ActivityPO;
 import com.tarena.lbs.pojo.marketing.vo.ActivityVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ActivityService {
     @Autowired
     private ActivityRepository activityRepository;
@@ -116,5 +118,31 @@ public class ActivityService {
         UserPrinciple userPrinciple = AuthenticationContextUtils.get();
         Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
         return userPrinciple;
+    }
+
+    //当前是一个查询判断的逻辑 这个逻辑 起始要调用多次 多个业务都在调用
+    //比如 领取优惠券的时候 用户是否符合活动目标人群
+    public Boolean isTargetConsumer(Integer userId, Integer activityId) throws BusinessException {
+        log.info("正在检查用户:{},是否符合活动:{},的目标人群");
+        //1.查询目标人群的id
+        ActivityPO po=activityRepository.getActivityById(activityId);
+        Asserts.isTrue(po==null,new BusinessException("-2","活动信息不存在"));
+        Integer targetGroupId=Integer.valueOf(po.getTargetCustomer());
+        if (targetGroupId==null){
+            //从业务上来说 活动可以绑定有 营销面向的用户
+            //同时 某些活动也可以面向所有用户 不绑定用户人群
+            return true;
+        }
+        //2.需要远程调用 根据 userId查询他所说的所有人群id集合
+        List<Integer> userGroupIds=null;
+        //TODO 调用basic 把userGroupIds的值 填充
+        if (CollectionUtils.isNotEmpty(userGroupIds)){
+            log.info("用户:{},所属人群:{}",userId,userGroupIds);
+            //4.判断当前活动的目标人群是否在所属人群范围内
+            return userGroupIds.contains(targetGroupId);
+        }else{
+            log.info("用户:{},没有所属人群",userId);
+            return false;
+        }
     }
 }
