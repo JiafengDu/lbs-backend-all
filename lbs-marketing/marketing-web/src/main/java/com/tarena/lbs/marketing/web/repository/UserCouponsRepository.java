@@ -3,8 +3,11 @@ package com.tarena.lbs.marketing.web.repository;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tarena.lbs.marketing.web.mapper.UserCouponsMapper;
 import com.tarena.lbs.pojo.marketing.po.UserCouponsPO;
+import com.tarena.lbs.pojo.marketing.query.UserCouponQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class UserCouponsRepository {
@@ -21,5 +24,12 @@ public class UserCouponsRepository {
 
     public void save(UserCouponsPO userCouponsPO) {
         userCouponsMapper.insert(userCouponsPO);
+    }
+
+    public List<UserCouponsPO> getUserCoupons(UserCouponQuery query) {
+        QueryWrapper<UserCouponsPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", query.getUserId());
+        queryWrapper.eq("status", query.getStatus());
+        return userCouponsMapper.selectList(queryWrapper);
     }
 }

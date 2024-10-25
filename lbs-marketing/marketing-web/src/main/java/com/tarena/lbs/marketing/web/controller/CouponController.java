@@ -6,7 +6,9 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.marketing.web.service.CouponService;
 import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.param.UserCouponsParam;
+import com.tarena.lbs.pojo.marketing.query.UserCouponQuery;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
+import com.tarena.lbs.pojo.marketing.vo.UserCouponsVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -52,5 +54,10 @@ public class CouponController {
         Long end=System.currentTimeMillis();
         log.info("用户领取优惠券耗时:{}MS",end-start);
         return Result.success();
+    }
+    // 前台小程序用户领取优惠券列表
+    @PostMapping("/marketing/user/receive/list")
+    public Result<PageResult<UserCouponsVO>> receiveList(@RequestBody UserCouponQuery couponQuery)throws BusinessException{
+        return new Result<>(couponService.receiveList(couponQuery));
     }
 }

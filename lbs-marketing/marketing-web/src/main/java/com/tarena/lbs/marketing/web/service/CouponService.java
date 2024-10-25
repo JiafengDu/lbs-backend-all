@@ -19,7 +19,9 @@ import com.tarena.lbs.pojo.marketing.po.ActivityPO;
 import com.tarena.lbs.pojo.marketing.po.CouponCodePO;
 import com.tarena.lbs.pojo.marketing.po.CouponPO;
 import com.tarena.lbs.pojo.marketing.po.UserCouponsPO;
+import com.tarena.lbs.pojo.marketing.query.UserCouponQuery;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
+import com.tarena.lbs.pojo.marketing.vo.UserCouponsVO;
 import com.tarena.lbs.pojo.stock.param.CouponStockParam;
 import com.tarena.lbs.pojo.stock.po.CouponStockPO;
 import com.tarena.lbs.stock.api.StockApi;
@@ -266,11 +268,13 @@ public class CouponService {
             Asserts.isTrue(!enough, new BusinessException("-2", "优惠券库存不足"));
             //1.抢锁 有key value 操作redis setnx是string类型
             //SETNX key value EX 5 原子级
+            log.info("库存充足开始抢锁,key:{},value:{}",lockKey,code);
             tryLock = opsForValue.setIfAbsent(lockKey, code, 5, TimeUnit.SECONDS);
             count++;
         }while (!tryLock);
         //释放锁一定要在finally
         try {
+            log.info("抢锁成功,开始领取优惠券");
             //2.创建一个可领取的优惠券码 返回券码code编码
             String couponCode = createCouponCode(coupon);
             //3.记录一下领取信息
@@ -280,9 +284,11 @@ public class CouponService {
         }catch (Exception e){
             throw e;
         }finally {
+            log.info("释放锁");
             //封装使用lua脚本
             String value = opsForValue.get(lockKey);
             if (value!=null&&value.equals(code)){
+                log.info("锁标识正确 可以释放");
                 redisTemplate.delete(lockKey);
             }
         }
@@ -468,5 +474,30 @@ public class CouponService {
         UserPrinciple userPrinciple = AuthenticationContextUtils.get();
         Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
         return userPrinciple.getId();
+    }
+
+    public PageResult<UserCouponsVO> receiveList(UserCouponQuery query) throws BusinessException {
+        //select * from user_coupons where user_id=#{} and status=0|1|2
+        PageResult<UserCouponsVO> voPage=new PageResult<>(query);
+        voPage.setTotal(100L);
+        //查询所有满足条件的记录 user
+        Integer userId = getUserId();
+        query.setUserId(userId);
+        List<UserCouponsPO> pos=userCouponsRepository.getUserCoupons(query);
+        List<UserCouponsVO> vos=assembleUserCouponsVOs(pos);
+        voPage.setObjects(vos);
+        return voPage;
+    }
+
+    private List<UserCouponsVO> assembleUserCouponsVOs(List<UserCouponsPO> pos) {
+        if (CollectionUtils.isNotEmpty(pos)){
+            return pos.stream().map(po->{
+                UserCouponsVO vo=new UserCouponsVO();
+                BeanUtils.copyProperties(po,vo);
+                return vo;
+            }).collect(Collectors.toList());
+        }else{
+            return null;
+        }
     }
 }
