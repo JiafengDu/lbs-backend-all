@@ -31,6 +31,8 @@ import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +66,9 @@ public class CouponService {
     @Resource
     @Qualifier("myExecutor")
     private ThreadPoolTaskExecutor executor;
+    //注入一个可以使用的redis客户端
+    @Autowired
+    private RedisTemplate redisTemplate;
     public PageResult<CouponVO> pageList() throws BusinessException {
         //1.解析认证对象 拿到UserPrinciple
         UserPrinciple userPrinciple=parseUserPrinciple();
@@ -238,15 +244,48 @@ public class CouponService {
         //T1 3 减库存(-1) 剩余0
         //T2 3 也减库存(-1) 剩余-1
         //1.读取当前优惠券库存数量 判断是否充足 每次只需要领取一张
-        Boolean enough=stockIsEnough(coupon.getId());
-        //如果库存已经没有了 ==0 方法到这就结束了
-        Asserts.isTrue(!enough,new BusinessException("-2","优惠券库存不足"));
-        //2.创建一个可领取的优惠券码 返回券码code编码
-        String couponCode=createCouponCode(coupon);
-        //3.记录一下领取信息
-        createUserReceiveCouponInfo(param,userId,activity,coupon,couponCode);
-        //4.扣减库存 扣减那个优惠券库存
-        reduceStock(coupon.getId());
+        Boolean tryLock=false;
+        ValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
+        String lockKey = "receive:coupon:" + coupon.getId();
+        String code = UUID.randomUUID().toString();
+        //第一次进来抢锁 不需要等待 第二次重抢 第三次重抢需要等待1秒钟
+        int count=0;
+        do {
+            //给线程一个重抢上3次 重抢抢不到就别抢了
+            Asserts.isTrue(count>3,new BusinessException("-2","优惠券领取失败"));
+            if (count>0){
+                //当前线程 已经不是第一次抢锁了 等1秒
+                try{
+                    Thread.sleep(1000);
+                }catch (InterruptedException e){
+                    log.error("线程等待异常",e);
+                }
+            }
+            Boolean enough = stockIsEnough(coupon.getId());
+            //如果库存已经没有了 ==0 方法到这就结束了
+            Asserts.isTrue(!enough, new BusinessException("-2", "优惠券库存不足"));
+            //1.抢锁 有key value 操作redis setnx是string类型
+            //SETNX key value EX 5 原子级
+            tryLock = opsForValue.setIfAbsent(lockKey, code, 5, TimeUnit.SECONDS);
+            count++;
+        }while (!tryLock);
+        //释放锁一定要在finally
+        try {
+            //2.创建一个可领取的优惠券码 返回券码code编码
+            String couponCode = createCouponCode(coupon);
+            //3.记录一下领取信息
+            createUserReceiveCouponInfo(param, userId, activity, coupon, couponCode);
+            //4.扣减库存 扣减那个优惠券库存
+            reduceStock(coupon.getId());
+        }catch (Exception e){
+            throw e;
+        }finally {
+            //封装使用lua脚本
+            String value = opsForValue.get(lockKey);
+            if (value!=null&&value.equals(code)){
+                redisTemplate.delete(lockKey);
+            }
+        }
     }
 
     private void reduceStock(Integer couponId) throws BusinessException {
