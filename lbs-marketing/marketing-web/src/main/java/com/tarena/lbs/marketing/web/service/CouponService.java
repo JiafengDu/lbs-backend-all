@@ -29,14 +29,19 @@ import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +59,9 @@ public class CouponService {
     private BasicApi basicApi;
     @DubboReference
     private StockApi stockApi;
+    @Resource
+    @Qualifier("myExecutor")
+    private ThreadPoolTaskExecutor executor;
     public PageResult<CouponVO> pageList() throws BusinessException {
         //1.解析认证对象 拿到UserPrinciple
         UserPrinciple userPrinciple=parseUserPrinciple();
@@ -194,15 +202,28 @@ public class CouponService {
         return vo;
     }
 
-    public void receiveCoupon(UserCouponsParam param) throws BusinessException {
+    public void receiveCoupon(UserCouponsParam param) throws BusinessException{
         //1.拿到认证的userId 也是解析 认证检验
         Integer userId=getUserId();
         //2.校验活动和用户 是否合法,如果合法 返回活动对象 以活动对象是否为空 判断是否合法
-        ActivityPO activity=checkUserAndActivity(param.getActivityId(),userId);
-        Asserts.isTrue(activity==null,new BusinessException("-2","活动校验失败"));
+        CompletableFuture<ActivityPO> activityFuture = CompletableFuture.supplyAsync(() -> {
+            return checkUserAndActivity(param.getActivityId(), userId);
+        }, executor);
+        //Asserts.isTrue(activity==null,new BusinessException("-2","活动校验失败"));
         //3.校验优惠券和用户是否合法,如果合法 返回优惠券对象
-        CouponPO coupon=checkUserAndCoupon(param.getCouponId(),userId);
-        Asserts.isTrue(coupon==null,new BusinessException("-2","优惠券校验失败"));
+        CompletableFuture<CouponPO> couponFuture = CompletableFuture.supplyAsync(() -> {
+            return checkUserAndCoupon(param.getCouponId(), userId);
+        }, executor);
+        CompletableFuture<Void> allFuture = CompletableFuture.allOf(activityFuture, couponFuture);
+        ActivityPO activity=null;
+        CouponPO coupon=null;
+        try{
+            activity=activityFuture.get();
+            coupon=couponFuture.get();
+        }catch (Exception e){
+            log.error("并发失败,异常",e);
+        }
+        //Asserts.isTrue(coupon==null,new BusinessException("-2","优惠券校验失败"));
         //4.开始领取优惠券
         //doReceiveCoupon(param,userId,activity,coupon);
     }

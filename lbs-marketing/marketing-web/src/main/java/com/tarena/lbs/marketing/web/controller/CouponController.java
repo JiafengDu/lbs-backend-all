@@ -7,6 +7,8 @@ import com.tarena.lbs.marketing.web.service.CouponService;
 import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.param.UserCouponsParam;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @Slf4j
+@Api(tags="优惠券模块")
 public class CouponController {
     @Autowired
     private CouponService couponService;
@@ -40,10 +43,14 @@ public class CouponController {
         return new Result<>(couponService.detail(id));
     }
     //前台小程序用户 领取优惠券
+    @ApiOperation(value = "领取优惠券")
     @PostMapping("/marketing/user/receive/save")
     public Result<Void> receiveCoupon(@RequestBody UserCouponsParam param)
         throws BusinessException{
+        Long start=System.currentTimeMillis();
         couponService.receiveCoupon(param);
+        Long end=System.currentTimeMillis();
+        log.info("用户领取优惠券耗时:{}MS",end-start);
         return Result.success();
     }
 }
