@@ -6,6 +6,7 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.marketing.web.service.CouponService;
 import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.param.UserCouponsParam;
+import com.tarena.lbs.pojo.marketing.query.UserCouponCodeQuery;
 import com.tarena.lbs.pojo.marketing.query.UserCouponQuery;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
 import com.tarena.lbs.pojo.marketing.vo.UserCouponsVO;
@@ -60,4 +61,14 @@ public class CouponController {
     public Result<PageResult<UserCouponsVO>> receiveList(@RequestBody UserCouponQuery couponQuery)throws BusinessException{
         return new Result<>(couponService.receiveList(couponQuery));
     }
+    //查看某一个优惠券码的二维码图片 查看券码详情(二维码只是一个url图片属性)
+    //疑问: 大量的接口都是查询功能 为什么使用post
+    //REST风格 建议 按照http协议最初设计目的 使用不同请求
+    @PostMapping("/marketing/user/receive/detail")
+    public Result<UserCouponsVO> receiveDetail(@RequestBody UserCouponCodeQuery query)
+        throws BusinessException{
+        return new Result<>(couponService.receiveDetail(query));
+    }
+
+
 }

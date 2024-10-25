@@ -32,4 +32,12 @@ public class UserCouponsRepository {
         queryWrapper.eq("status", query.getStatus());
         return userCouponsMapper.selectList(queryWrapper);
     }
+
+    public UserCouponsPO getUserCouponsByCode(String couponCode) {
+        //user_coupons一条数据 条件code
+        //select * from user_coupons where coupon_code=#{}
+        QueryWrapper<UserCouponsPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("coupon_code", couponCode);
+        return userCouponsMapper.selectOne(queryWrapper);
+    }
 }

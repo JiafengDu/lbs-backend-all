@@ -19,6 +19,7 @@ import com.tarena.lbs.pojo.marketing.po.ActivityPO;
 import com.tarena.lbs.pojo.marketing.po.CouponCodePO;
 import com.tarena.lbs.pojo.marketing.po.CouponPO;
 import com.tarena.lbs.pojo.marketing.po.UserCouponsPO;
+import com.tarena.lbs.pojo.marketing.query.UserCouponCodeQuery;
 import com.tarena.lbs.pojo.marketing.query.UserCouponQuery;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
 import com.tarena.lbs.pojo.marketing.vo.UserCouponsVO;
@@ -497,6 +498,37 @@ public class CouponService {
                 return vo;
             }).collect(Collectors.toList());
         }else{
+            return null;
+        }
+    }
+
+    public UserCouponsVO receiveDetail(UserCouponCodeQuery query) {
+        //2.使用code编码到数据库 查询CouponCode详情 po
+        UserCouponsPO po=userCouponsRepository.getUserCouponsByCode(query.getCouponCode());
+        UserCouponsVO vo=null;
+        //3.转化封装
+        if (po!=null){
+            vo=new UserCouponsVO();
+            BeanUtils.copyProperties(po,vo);
+            //二维码的访问查看的url 需要生成
+            String qrUrl=generateCouponQr(po);
+            vo.setCouponUrl(qrUrl);
+        }
+        return vo;
+    }
+
+    private String generateCouponQr(UserCouponsPO po) {
+        //1.读写缓存的客户端
+        ValueOperations<String,String> opsForValue = redisTemplate.opsForValue();
+        //2.二维码绑定的 数据可以使用code编码
+        String codeKey="coupon:code:url:"+po.getCouponCode();
+        //3.判断命中
+        Boolean exists = redisTemplate.hasKey(codeKey);
+        if (exists){
+            return opsForValue.get(codeKey);
+        }else{
+            //TODO 远程调用attachApi 生成二维码
+            //TODO 存储到缓存供后续使用
             return null;
         }
     }
