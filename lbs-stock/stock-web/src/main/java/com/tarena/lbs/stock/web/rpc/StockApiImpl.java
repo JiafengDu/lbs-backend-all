@@ -25,4 +25,16 @@ public class StockApiImpl implements StockApi {
         }
         return false;
     }
+
+    @Override
+    public Integer getCouponStock(Integer couponId) {
+        return stockService.getCouponStock(couponId);
+    }
+
+    @Override
+    public Boolean reduceStock(Integer couponId, Integer num) {
+        //update coupon_stock set num=num-#{num} where coupon_id=#{couponId}
+        //and num>=#{num}
+        return null;
+    }
 }

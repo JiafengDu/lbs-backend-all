@@ -18,6 +18,7 @@ import com.tarena.lbs.pojo.marketing.param.UserCouponsParam;
 import com.tarena.lbs.pojo.marketing.po.ActivityPO;
 import com.tarena.lbs.pojo.marketing.po.CouponCodePO;
 import com.tarena.lbs.pojo.marketing.po.CouponPO;
+import com.tarena.lbs.pojo.marketing.po.UserCouponsPO;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
 import com.tarena.lbs.pojo.stock.param.CouponStockParam;
 import com.tarena.lbs.pojo.stock.po.CouponStockPO;
@@ -201,7 +202,7 @@ public class CouponService {
         }
         return vo;
     }
-
+    @Transactional(rollbackFor = Exception.class)
     public void receiveCoupon(UserCouponsParam param) throws BusinessException{
         //1.拿到认证的userId 也是解析 认证检验
         Integer userId=getUserId();
@@ -209,7 +210,7 @@ public class CouponService {
         CompletableFuture<ActivityPO> activityFuture = CompletableFuture.supplyAsync(() -> {
             return checkUserAndActivity(param.getActivityId(), userId);
         }, executor);
-        //Asserts.isTrue(activity==null,new BusinessException("-2","活动校验失败"));
+
         //3.校验优惠券和用户是否合法,如果合法 返回优惠券对象
         CompletableFuture<CouponPO> couponFuture = CompletableFuture.supplyAsync(() -> {
             return checkUserAndCoupon(param.getCouponId(), userId);
@@ -223,9 +224,80 @@ public class CouponService {
         }catch (Exception e){
             log.error("并发失败,异常",e);
         }
-        //Asserts.isTrue(coupon==null,new BusinessException("-2","优惠券校验失败"));
+        Asserts.isTrue(activity==null,new BusinessException("-2","活动校验失败"));
+        Asserts.isTrue(coupon==null,new BusinessException("-2","优惠券校验失败"));
         //4.开始领取优惠券
-        //doReceiveCoupon(param,userId,activity,coupon);
+        this.doReceiveCoupon(param,userId,activity,coupon);
+    }
+    private void doReceiveCoupon(UserCouponsParam param, Integer userId, ActivityPO activity, CouponPO coupon) throws BusinessException {
+        //T1 T2 T3 T4 T5
+        //T1 1 查询充足 足
+        //T2 1 查询充足 足
+        //T1 2 写数据
+        //T2 2 写数据
+        //T1 3 减库存(-1) 剩余0
+        //T2 3 也减库存(-1) 剩余-1
+        //1.读取当前优惠券库存数量 判断是否充足 每次只需要领取一张
+        Boolean enough=stockIsEnough(coupon.getId());
+        //如果库存已经没有了 ==0 方法到这就结束了
+        Asserts.isTrue(!enough,new BusinessException("-2","优惠券库存不足"));
+        //2.创建一个可领取的优惠券码 返回券码code编码
+        String couponCode=createCouponCode(coupon);
+        //3.记录一下领取信息
+        createUserReceiveCouponInfo(param,userId,activity,coupon,couponCode);
+        //4.扣减库存 扣减那个优惠券库存
+        reduceStock(coupon.getId());
+    }
+
+    private void reduceStock(Integer couponId) throws BusinessException {
+        Boolean result = stockApi.reduceStock(couponId, 1);
+        //保持强一致性 2个服务调用如果库存扩建失败 需要将上述的写操作都回滚
+        Asserts.isTrue(!result,new BusinessException("-2","库存扣减失败"));
+    }
+
+    private void createUserReceiveCouponInfo(UserCouponsParam param, Integer userId, ActivityPO activity, CouponPO coupon, String couponCode) {
+        //1.创建一个领取记录的po user_coupons
+        UserCouponsPO userCouponsPO=new UserCouponsPO();
+        //2.封装好属性
+        userCouponsPO.setCouponValue(coupon.getDiscountValue());//优惠券面额
+        userCouponsPO.setCreateAt(new Date());
+        userCouponsPO.setUpdateAt(userCouponsPO.getCreateAt());
+        userCouponsPO.setUserId(userId);
+        userCouponsPO.setCouponId(coupon.getId());
+        userCouponsPO.setCouponCode(couponCode);
+        userCouponsPO.setStatus(0);//没有用到 用户领取记录的状态 0表示不空
+        userCouponsPO.setShopId(param.getShopId()==null?0:param.getShopId());
+        userCouponsPO.setActivityId(activity.getId());
+        userCouponsPO.setReceiveChannel(param.getReceiveChannel()==null?0:param.getReceiveChannel());
+        userCouponsPO.setCouponType(coupon.getCouponType());
+        userCouponsPO.setOrderNo("");//领取记录 没有订单编号
+        userCouponsPO.setUsedTime(null);//还没有使用 没有使用时间
+        //3.保存到数据库 新增
+        userCouponsRepository.save(userCouponsPO);
+    }
+
+    private String createCouponCode(CouponPO coupon) {
+        //1.组织一个CouponCodePO
+        CouponCodePO couponCodePO=new CouponCodePO();
+        couponCodePO.setCreateAt(new Date());
+        couponCodePO.setUpdateAt(couponCodePO.getCreateAt());
+        couponCodePO.setStatus(1);//0未领取 1已领取 2已过期
+        couponCodePO.setCouponId(coupon.getId());
+        couponCodePO.setBusinessId(coupon.getBusinessId());
+        //手动创建code编码
+        String code=UUID.randomUUID().toString().replaceAll("-", "");
+        couponCodePO.setCouponCode(code);
+        //2.写入数据库
+        couponCodeRepository.save(couponCodePO);
+        //3.返回code
+        return code;
+    }
+
+    private Boolean stockIsEnough(Integer couponId) {
+        //1.使用库存接口类 查询剩余库存数量
+        Integer num = stockApi.getCouponStock(couponId);
+        //2.判断是否>0
+        return num>0;
     }
 
     private CouponPO checkUserAndCoupon(Integer couponId, Integer userId) {

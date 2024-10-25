@@ -21,4 +21,12 @@ public class StockRepository {
     public int save(CouponStockPO poParam) {
         return stockMapper.insert(poParam);
     }
+
+    public Integer getCouponNum(Integer couponId) {
+        //select * from coupon_stock where coupon_id=#{}
+        QueryWrapper<CouponStockPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("coupon_id", couponId);
+        CouponStockPO couponStockPO = stockMapper.selectOne(queryWrapper);
+        return couponStockPO.getNum();
+    }
 }

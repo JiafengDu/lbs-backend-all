@@ -32,4 +32,8 @@ public class StockService {
         //mybatis框架是可以在增删改的方法上 接收返回值
         return result>0;
     }
+
+    public Integer getCouponStock(Integer couponId) {
+        return stockRepository.getCouponNum(couponId);
+    }
 }
