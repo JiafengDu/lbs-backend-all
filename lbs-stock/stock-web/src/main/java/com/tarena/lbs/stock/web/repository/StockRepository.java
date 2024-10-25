@@ -29,4 +29,9 @@ public class StockRepository {
         CouponStockPO couponStockPO = stockMapper.selectOne(queryWrapper);
         return couponStockPO.getNum();
     }
+
+    public int updateNumByCouponId(Integer couponId, Integer num) {
+        //mybatis plus 比mybatis麻烦一点 直接自定义一个myabtis 方法
+        return stockMapper.updateNumByCouponId(couponId, num);
+    }
 }

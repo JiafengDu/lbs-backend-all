@@ -36,4 +36,9 @@ public class StockService {
     public Integer getCouponStock(Integer couponId) {
         return stockRepository.getCouponNum(couponId);
     }
+
+    public Boolean reduceStock(Integer couponId, Integer num) {
+        int row=stockRepository.updateNumByCouponId(couponId,num);
+        return row>0;//大于0 数据库执行更新成功 等于0 数据库执行更新失败
+    }
 }
