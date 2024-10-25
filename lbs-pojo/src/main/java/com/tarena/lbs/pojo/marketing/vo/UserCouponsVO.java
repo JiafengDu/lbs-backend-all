@@ -1,5 +1,6 @@
 package com.tarena.lbs.pojo.marketing.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -31,9 +32,11 @@ public class UserCouponsVO implements Serializable {
     private Integer activityId;
 
     @ApiModelProperty(value = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createAt;
 
     @ApiModelProperty(value = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateAt;
 
     @ApiModelProperty(value = "优惠券编码")
@@ -43,6 +46,7 @@ public class UserCouponsVO implements Serializable {
     private String orderNo;
 
     @ApiModelProperty(value = "使用时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date usedTime;
 
     @ApiModelProperty(value = "优惠券类型")
