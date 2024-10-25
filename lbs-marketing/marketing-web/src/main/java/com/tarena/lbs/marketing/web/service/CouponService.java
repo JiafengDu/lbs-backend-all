@@ -1,6 +1,7 @@
 package com.tarena.lbs.marketing.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.tarena.lbs.attach.api.AttachApi;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
@@ -12,6 +13,8 @@ import com.tarena.lbs.marketing.web.repository.CouponCodeRepository;
 import com.tarena.lbs.marketing.web.repository.CouponRepository;
 import com.tarena.lbs.marketing.web.repository.UserCouponsRepository;
 import com.tarena.lbs.marketing.web.utils.AuthenticationContextUtils;
+import com.tarena.lbs.pojo.attach.dto.AttachQrDTO;
+import com.tarena.lbs.pojo.attach.param.AttachQRParam;
 import com.tarena.lbs.pojo.basic.dto.AdminDTO;
 import com.tarena.lbs.pojo.marketing.param.CouponParam;
 import com.tarena.lbs.pojo.marketing.param.UserCouponsParam;
@@ -69,6 +72,8 @@ public class CouponService {
     @Resource
     @Qualifier("myExecutor")
     private ThreadPoolTaskExecutor executor;
+    @DubboReference
+    private AttachApi attachApi;
     //注入一个可以使用的redis客户端
     @Autowired
     private RedisTemplate redisTemplate;
@@ -527,9 +532,16 @@ public class CouponService {
         if (exists){
             return opsForValue.get(codeKey);
         }else{
-            //TODO 远程调用attachApi 生成二维码
-            //TODO 存储到缓存供后续使用
-            return null;
+            //调用api拿到二维码的返回对象 解析 url属性
+            AttachQRParam attachQRParam=new AttachQRParam();
+            attachQRParam.setContent("https://www.baidu.com?code="+po.getCouponCode());
+            attachQRParam.setBusinessType(800);
+            attachQRParam.setBusinessId(po.getId());
+            AttachQrDTO attachQrDTO = attachApi.generateQrCode(attachQRParam);
+            String url=attachQrDTO.getUrl();
+            //存储缓存
+            opsForValue.set(codeKey,url);
+            return url;
         }
     }
 }
