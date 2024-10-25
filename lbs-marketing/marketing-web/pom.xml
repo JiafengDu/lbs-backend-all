@@ -79,5 +79,8 @@
             <artifactId>guava</artifactId>
             <version>30.1-jre</version> <!-- 根据实际情况选择版本 -->
         </dependency>
+        <!--knife4j插件 提供一个接口文档-->
+
+
     </dependencies>
 </project>

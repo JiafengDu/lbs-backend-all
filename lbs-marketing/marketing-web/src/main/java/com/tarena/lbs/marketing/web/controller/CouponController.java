@@ -5,6 +5,7 @@ import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.marketing.web.service.CouponService;
 import com.tarena.lbs.pojo.marketing.param.CouponParam;
+import com.tarena.lbs.pojo.marketing.param.UserCouponsParam;
 import com.tarena.lbs.pojo.marketing.vo.CouponVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,5 +38,12 @@ public class CouponController {
     public Result<CouponVO> detail(@PathVariable("id") Integer id)
         throws BusinessException{
         return new Result<>(couponService.detail(id));
+    }
+    //前台小程序用户 领取优惠券
+    @PostMapping("/marketing/user/receive/save")
+    public Result<Void> receiveCoupon(@RequestBody UserCouponsParam param)
+        throws BusinessException{
+        couponService.receiveCoupon(param);
+        return Result.success();
     }
 }
