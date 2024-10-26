@@ -219,7 +219,15 @@ public class CouponService {
     @Transactional(rollbackFor = Exception.class)
     public void receiveCoupon(UserCouponsParam param) throws BusinessException{
         //1.拿到认证的userId 也是解析 认证检验
-        Integer userId=getUserId();
+        final Integer userId;
+        if (param.getUserId()==null){
+            //前端领取优惠券 解析jwt的方式
+            userId=getUserId();
+        }else{
+            //消息消费者调用的本身param就有userId
+            userId=param.getUserId();
+        }
+
         //2.校验活动和用户 是否合法,如果合法 返回活动对象 以活动对象是否为空 判断是否合法
         CompletableFuture<ActivityPO> activityFuture = CompletableFuture.supplyAsync(() -> {
             return checkUserAndActivity(param.getActivityId(), userId);
