@@ -9,6 +9,7 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.repository.StoreRepository;
+import com.tarena.lbs.basic.web.source.BasicOutputSource;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
@@ -28,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -44,6 +47,8 @@ public class StoreService {
     private AdminRepository adminRepository;
     @Autowired
     private BusinessRepository businessRepository;
+    @Autowired
+    private BasicOutputSource outputSource;
     @DubboReference
     private AttachApi attachApi;
     public PageResult<StoreVO> pageList(StoreQuery query) throws BusinessException {
@@ -235,7 +240,9 @@ public class StoreService {
                 LocationEvent event=new LocationEvent();
                 event.setUserId(userId);
                 event.setStoreId(store.getId());
-                //TODO 将消息发送
+                //将消息发送
+                Message<LocationEvent> messge = MessageBuilder.withPayload(event).build();
+                outputSource.getStoreLocationOutput().send(messge);
             });
         }
     }

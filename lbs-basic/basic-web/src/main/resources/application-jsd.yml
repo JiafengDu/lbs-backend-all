@@ -1,5 +1,11 @@
 #虚拟机 数据库 redis nacos es rabbitmq
 spring:
+  #rabbit
+  rabbitmq:
+    addresses: 192.168.8.100:5672
+    username: admin
+    password: 123456
+    virtual-host: /
   elasticsearch:
     uris: http://192.168.8.100:9200
   cloud:

@@ -1,5 +1,11 @@
 #开放本地环境local
 spring:
+  #stream
+  cloud:
+    stream:
+      bindings:
+        store-location-output:
+          destination: store-location-destination
   profiles:
     active: local
   #springmvc 参数策略 2.6.13boot整合springmvc 需要配置的属性
