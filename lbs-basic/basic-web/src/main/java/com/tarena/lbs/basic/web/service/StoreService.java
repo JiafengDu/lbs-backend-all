@@ -13,7 +13,10 @@ import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
+import com.tarena.lbs.pojo.basic.entity.StoreSearchEntity;
+import com.tarena.lbs.pojo.basic.event.LocationEvent;
 import com.tarena.lbs.pojo.basic.param.StoreParam;
+import com.tarena.lbs.pojo.basic.param.UserLocationParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.po.StorePO;
@@ -218,5 +221,28 @@ public class StoreService {
         }
         voPage.setObjects(vos);
         return voPage;
+    }
+
+    public void location(UserLocationParam param) throws BusinessException {
+        //1.解析认证拿到userId
+        Integer userId=getUserId();
+        //2.调用仓储层 查询定位中心点5公里|10公里|20公里的店铺 最多5个 size=5
+        List<StoreSearchEntity> stores=storeRepository.getNearStores(param.getLatitude(),param.getLongitude(),50d);
+        //3.定义组织消息对象 使用stream发送到目标
+        if (CollectionUtils.isNotEmpty(stores)){
+            stores.forEach(store->{
+                //组织消息
+                LocationEvent event=new LocationEvent();
+                event.setUserId(userId);
+                event.setStoreId(store.getId());
+                //TODO 将消息发送
+            });
+        }
+    }
+
+    private Integer getUserId() throws BusinessException {
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        return userPrinciple.getId();
     }
 }

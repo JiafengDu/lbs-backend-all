@@ -5,6 +5,7 @@ import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.service.StoreService;
 import com.tarena.lbs.pojo.basic.param.StoreParam;
+import com.tarena.lbs.pojo.basic.param.UserLocationParam;
 import com.tarena.lbs.pojo.basic.query.AreaStoreQuery;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import com.tarena.lbs.pojo.basic.vo.StoreVO;
@@ -38,6 +39,13 @@ public class StoreController {
         throws BusinessException {
         PageResult<StoreVO> voPage= storeService.getStoreByCity(query);
         return new Result<>(voPage);
+    }
+    //手机小程序定位上报
+    @PostMapping("/basic/store/location")
+    public Result<Void> location(@RequestBody UserLocationParam param)
+        throws BusinessException{
+        storeService.location(param);
+        return Result.success();
     }
 
 }
