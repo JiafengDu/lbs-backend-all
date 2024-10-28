@@ -7,7 +7,9 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.pojo.content.param.ArticleActionParam;
 import com.tarena.lbs.pojo.content.param.ArticleContentParam;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
+import com.tarena.lbs.pojo.content.vo.ArticleActionPageResultVO;
 import com.tarena.lbs.pojo.content.vo.ArticleVO;
+import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import java.util.Set;
  * 文章业务模块接口
  */
 @RestController
+@Slf4j
 public class ArticleController {
     @Autowired
     private ArticleService articleService;
@@ -57,6 +60,16 @@ public class ArticleController {
         return Result.success();
     }
 
+    //给某个登录的用户 查询他曾经点赞 收藏 访问过的文章
+    @GetMapping("admin/content/article/getBehaviorList")
+    public Result<ArticleActionPageResultVO> getBehaviorLists(ArticleQuery query)
+        throws BusinessException{
+        Long start=System.currentTimeMillis();
+        ArticleActionPageResultVO voPage = articleService.getBehaviorLists(query);
+        Long end=System.currentTimeMillis();
+        log.info("查询用户行为列表耗时:{}MS",end-start);
+        return new Result<>(voPage);
+    }
 
 
 

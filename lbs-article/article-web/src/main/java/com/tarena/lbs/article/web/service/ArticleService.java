@@ -2,6 +2,7 @@ package com.tarena.lbs.article.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.tarena.lbs.article.web.repository.ActionESRepository;
+import com.tarena.lbs.article.web.repository.ActionRepository;
 import com.tarena.lbs.article.web.repository.ArticleRepository;
 import com.tarena.lbs.article.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.base.common.utils.Asserts;
@@ -15,23 +16,32 @@ import com.tarena.lbs.pojo.content.entity.ArticleSearchEntity;
 import com.tarena.lbs.pojo.content.param.ArticleActionParam;
 import com.tarena.lbs.pojo.content.param.ArticleContentParam;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
+import com.tarena.lbs.pojo.content.vo.ArticleActionPageResultVO;
+import com.tarena.lbs.pojo.content.vo.ArticleActionVO;
 import com.tarena.lbs.pojo.content.vo.ArticleVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class ArticleService {
+    @Autowired
+    private ActionRepository actionRepository;
     @Autowired
     private ActionESRepository actionESRepository;
     @Autowired
@@ -169,8 +179,10 @@ public class ArticleService {
         String liekCount = opsHash.get("1");
         String favorCount = opsHash.get("2");
         vo.setAccessCount(accessCount.intValue());
-        vo.setLikeCount(Integer.valueOf(liekCount));
-        vo.setFavoriteCount(Integer.valueOf(favorCount));
+        if (StringUtils.isNotBlank(liekCount)){
+        vo.setLikeCount(Integer.valueOf(liekCount));}
+        if (StringUtils.isNotBlank(favorCount)){
+        vo.setFavoriteCount(Integer.valueOf(favorCount));}
         //vo对象 缺少的likeCount accessCount favoriteCount 都从redis读取
         return vo;
     }
@@ -246,5 +258,66 @@ public class ArticleService {
         }*/
         //2.1读取文章数据 拿到当前likeCount或者favoriteCount
         //2.2 给数据+1更新 5-> 7->8 安全隐患 线程肯定不安全.
+    }
+    @Resource
+    @Qualifier("myExecutor")
+    private ThreadPoolTaskExecutor executor;
+    public ArticleActionPageResultVO getBehaviorLists(ArticleQuery query) throws BusinessException {
+        //1.解析拿到当前登录用户,userId 查询行为的条件之一 对应行为记录属性behaviorUserId
+        Integer userId = getUserId();
+        //2.依次查询不同的文章数据 封装复用方法 查询点赞
+        CompletableFuture<PageResult<ArticleActionVO>> likeFuture = CompletableFuture.supplyAsync(() -> {
+            return getActionArticles(userId, 1);
+        }, executor);
+        CompletableFuture<PageResult<ArticleActionVO>> favorFuture = CompletableFuture.supplyAsync(() -> {
+            return getActionArticles(userId, 2);
+        }, executor);
+        CompletableFuture<PageResult<ArticleActionVO>> accessFuture = CompletableFuture.supplyAsync(() -> {
+            return getActionArticles(userId, 3);
+        }, executor);
+        CompletableFuture<Void> allFuture = CompletableFuture.allOf(likeFuture, favorFuture, accessFuture);
+
+        /*PageResult<ArticleActionVO> likeVos=getActionArticles(userId,1);
+        //3.查询收藏
+        PageResult<ArticleActionVO> favorVos=getActionArticles(userId,2);
+        //4.查询访问
+        PageResult<ArticleActionVO> accessVos=getActionArticles(userId,3);*/
+        ArticleActionPageResultVO vo=new ArticleActionPageResultVO();
+        try{
+            vo.setLikeFuturePageResult(likeFuture.get());
+            vo.setCollectFutureOPageResult(favorFuture.get());
+            vo.setCommentFuturePageResult(accessFuture.get());
+        }catch (Exception e){
+            log.error("封装数据失败",e);
+        }
+
+        return vo;
+
+    }
+
+    private PageResult<ArticleActionVO> getActionArticles(Integer userId, Integer behavior) {
+        Long startTime=System.currentTimeMillis();
+        //1.调用仓储层 封装restHighLevelclient做搜索
+        List<ActionSearchEntity> entities=actionRepository.searchActionArticles(userId,behavior);
+        PageResult<ArticleActionVO> voPage=new PageResult<>();
+        voPage.setPageNo(1);
+        voPage.setPageSize(10);
+        voPage.setTotal(100l);
+        List<ArticleActionVO> vos=null;
+        if (CollectionUtils.isNotEmpty(entities)){
+            vos=entities.stream().map(entity->{
+                ArticleActionVO vo=new ArticleActionVO();
+                BeanUtils.copyProperties(entity,vo);
+                //每个文章返回值 缺少一个封面图片
+                ArticleSearchEntity article = articleRepository.getArticleById(entity.getArticleId() + "");
+                vo.setArticleCover(article.getArticleCover());
+                return vo;
+            }).collect(Collectors.toList());
+        };
+        voPage.setObjects(vos);
+        Long endTime=System.currentTimeMillis();
+        log.info("查询用户:{},行为:{},查询消耗时间:{}MS",userId,behavior,endTime-startTime);
+        return voPage;
+
     }
 }
