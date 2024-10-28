@@ -137,11 +137,16 @@ public class ArticleService {
     }
 
     public ArticleVO detail(String id) throws BusinessException {
+        //组织一个用户行为记录 记录accessCount更新redis的数据 accessCount
+        ActionSearchEntity actionEntity=new ActionSearchEntity();
         //1.拿到登录用户的id
         Integer userId=getUserId();
         //2.调用仓储层拿到es的实体对象
         ArticleSearchEntity articleEntity=articleRepository.getArticleById(id);
         Integer activityId = articleEntity.getActivityId();
+        assembleActionEntity(userId,articleEntity,actionEntity,3,null);
+        //写入到行为记录索引中
+        actionESRepository.save(actionEntity);
         //3.判断 当前文章 有没有携带活动
         if (activityId!=null){
             log.info("用户:{},文章:{},携带了活动:{}",userId,id,activityId);
@@ -155,7 +160,34 @@ public class ArticleService {
             log.info("用户:{},文章:{},没有携带活动",userId,id);
         }
         ArticleVO vo=assembleArticleVO(articleEntity);
+        //文章详情查询 相当于更新redis记录的当前文章的accessCount
+        //文章点赞单独取
+        String articleNumKey="article:count:"+articleEntity.getId();
+        BoundHashOperations<String, String, String> opsHash = stringRedisTemplate.boundHashOps(articleNumKey);
+        //更新一下阅读次数accessCount
+        Long accessCount = opsHash.increment(3 + "", 1);
+        String liekCount = opsHash.get("1");
+        String favorCount = opsHash.get("2");
+        vo.setAccessCount(accessCount.intValue());
+        vo.setLikeCount(Integer.valueOf(liekCount));
+        vo.setFavoriteCount(Integer.valueOf(favorCount));
+        //vo对象 缺少的likeCount accessCount favoriteCount 都从redis读取
         return vo;
+    }
+
+    private void assembleActionEntity(Integer userId, ArticleSearchEntity article, ActionSearchEntity actionEntity,Integer behavior,String comment) {
+        //装配一下 行为发起人id
+        actionEntity.setBehaviorUserId(userId);
+        //文章冗余字段属性
+        actionEntity.setArticleId(article.getId());
+        actionEntity.setArticleUserId(article.getUserId());
+        actionEntity.setArticleTitle(article.getArticleTitle());
+        actionEntity.setArticleType(article.getArticleCategoryId()+"");
+        actionEntity.setArticleLabel(article.getArticleLabel());
+        actionEntity.setCreateTime(new Date());
+        actionEntity.setComment(comment);//只有在befavior的值是3的时候才有评论
+        actionEntity.setBehavior(behavior);
+        log.info("写入到用户行为记录的数据:{}",actionEntity);
     }
 
     private ArticleVO assembleArticleVO(ArticleSearchEntity articleEntity) {
@@ -183,18 +215,7 @@ public class ArticleService {
         Integer userId = getUserId();
         //1.2 缺少文章冗余信息 比如 文章所属作者 文章分类 文章标题 文章类型文章标签
         ArticleSearchEntity article = articleRepository.getArticleById(param.getId() + "");
-        //装配一下 行为发起人id
-        actionEntity.setBehaviorUserId(userId);
-        //文章冗余字段属性
-        actionEntity.setArticleId(param.getId());
-        actionEntity.setArticleUserId(article.getUserId());
-        actionEntity.setArticleTitle(article.getArticleTitle());
-        actionEntity.setArticleType(article.getArticleCategoryId()+"");
-        actionEntity.setArticleLabel(article.getArticleLabel());
-        actionEntity.setCreateTime(new Date());
-        actionEntity.setComment(param.getComment());//只有在befavior的值是3的时候才有评论
-        actionEntity.setBehavior(param.getBehavior());
-        log.info("写入到用户行为记录的数据:{}",actionEntity);
+        assembleActionEntity(userId,article,actionEntity,param.getBehavior(),param.getComment());
         actionESRepository.save(actionEntity);
         //2.这次操作 记录一次 行为 并且修改一次文章属性 如果点赞 修改likeCount++ 如果收藏 修改favoriteCount++
         //根据本次行为的id 判断更新哪个属性 1点赞likeCount 2收藏favoriteCount 3评论 accessCount 4访问 5转发...
