@@ -4,6 +4,7 @@ import com.tarena.lbs.article.web.service.ArticleService;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
+import com.tarena.lbs.pojo.content.param.ArticleActionParam;
 import com.tarena.lbs.pojo.content.param.ArticleContentParam;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
 import com.tarena.lbs.pojo.content.vo.ArticleVO;
@@ -48,4 +49,15 @@ public class ArticleController {
     public Result<ArticleVO> articleDetail(String id)throws BusinessException{
         return new Result<>(articleService.detail(id));
     }
+    //用户行为记录
+    @PostMapping("/admin/content/article/behavior")
+    public Result<Void> articleBehavior(ArticleActionParam param)
+        throws BusinessException{
+        articleService.articleBehavior(param);
+        return Result.success();
+    }
+
+
+
+
 }

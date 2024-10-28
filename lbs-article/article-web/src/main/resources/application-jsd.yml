@@ -1,5 +1,10 @@
 #虚拟机 数据库 redis nacos es rabbitmq
 spring:
+  #redis
+  redis:
+    host: 192.168.8.100
+    port: 6379
+    password: 123456
   elasticsearch:
     uris: http://192.168.8.100:9200
   cloud:

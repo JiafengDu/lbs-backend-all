@@ -1,5 +1,9 @@
 #本地环境 数据库 redis nacos es rabbitmq
 spring:
+  #redis
+  redis:
+    host: localhost
+    port: 6379
   elasticsearch:
     uris: http://localhost:9200
   cloud:

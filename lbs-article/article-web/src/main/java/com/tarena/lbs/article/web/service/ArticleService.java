@@ -1,6 +1,7 @@
 package com.tarena.lbs.article.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.tarena.lbs.article.web.repository.ActionESRepository;
 import com.tarena.lbs.article.web.repository.ArticleRepository;
 import com.tarena.lbs.article.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.base.common.utils.Asserts;
@@ -9,7 +10,9 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.common.content.utils.SequenceGenerator;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.marketing.api.MarketingApi;
+import com.tarena.lbs.pojo.content.entity.ActionSearchEntity;
 import com.tarena.lbs.pojo.content.entity.ArticleSearchEntity;
+import com.tarena.lbs.pojo.content.param.ArticleActionParam;
 import com.tarena.lbs.pojo.content.param.ArticleContentParam;
 import com.tarena.lbs.pojo.content.query.ArticleQuery;
 import com.tarena.lbs.pojo.content.vo.ArticleVO;
@@ -17,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundHashOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -28,9 +33,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ArticleService {
     @Autowired
+    private ActionESRepository actionESRepository;
+    @Autowired
     private ArticleRepository articleRepository;
     @DubboReference
     private MarketingApi marketingApi;
+    //redis客户端 计步器客户端 value序列化 必须使用String不能是json java
+    //redisTemplate 可以存储缓存 用object做key和value
+    //stringRedisTemplate 如果做缓存 转化对象到字符串
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
     public PageResult<ArticleVO> pageList(ArticleQuery articleQuery) throws BusinessException {
         //1.准备返回值
         PageResult<ArticleVO> voPage=new PageResult<>();
@@ -162,5 +174,56 @@ public class ArticleService {
         Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
         //3.返回
         return userPrinciple.getId();
+    }
+
+    public void articleBehavior(ArticleActionParam param) throws BusinessException {
+        //1.封装ActionSearchEntity 记录到lbs_action索引
+        ActionSearchEntity actionEntity=new ActionSearchEntity();
+        //1.1 缺少发起行为的用户id
+        Integer userId = getUserId();
+        //1.2 缺少文章冗余信息 比如 文章所属作者 文章分类 文章标题 文章类型文章标签
+        ArticleSearchEntity article = articleRepository.getArticleById(param.getId() + "");
+        //装配一下 行为发起人id
+        actionEntity.setBehaviorUserId(userId);
+        //文章冗余字段属性
+        actionEntity.setArticleId(param.getId());
+        actionEntity.setArticleUserId(article.getUserId());
+        actionEntity.setArticleTitle(article.getArticleTitle());
+        actionEntity.setArticleType(article.getArticleCategoryId()+"");
+        actionEntity.setArticleLabel(article.getArticleLabel());
+        actionEntity.setCreateTime(new Date());
+        actionEntity.setComment(param.getComment());//只有在befavior的值是3的时候才有评论
+        actionEntity.setBehavior(param.getBehavior());
+        log.info("写入到用户行为记录的数据:{}",actionEntity);
+        actionESRepository.save(actionEntity);
+        //2.这次操作 记录一次 行为 并且修改一次文章属性 如果点赞 修改likeCount++ 如果收藏 修改favoriteCount++
+        //根据本次行为的id 判断更新哪个属性 1点赞likeCount 2收藏favoriteCount 3评论 accessCount 4访问 5转发...
+        Integer behavior = param.getBehavior();//行为 分类
+        //使用redis存储这篇文章相关连的数据计步器
+        String articleNumKey="article:count:"+article.getId();
+        //hash的属性值 使用behavior的数字 1点赞 2收藏 3评论 4转发 5访问...
+        BoundHashOperations<String, String, String> opsForHash =
+                stringRedisTemplate.boundHashOps(articleNumKey);
+        //调用hash的命令increby
+        Long increment = opsForHash.increment(param.getBehavior() + "", 1);
+        log.info("当前文章:{},用户行为:{},记录后的数字:{}",article.getId(),param.getBehavior(),increment);
+        /*if (behavior!=null&&behavior.equals(1)){
+            //点赞操作
+            Integer likeCount = article.getLikeCount();
+            article.setLikeCount(likeCount+1);
+            updateArticleCount(article);
+        }else if (behavior!=null&&behavior.equals(2)){
+            //收藏
+            Integer favoriteCount = article.getFavoriteCount();
+            article.setFavoriteCount(favoriteCount+1);
+            updateArticleCount(article);
+        }else if (behavior!=null&&behavior.equals(3)){
+            //评论
+            Integer accessCount = article.getAccessCount();
+            article.setAccessCount(accessCount+1);
+            updateArticleCount(article);
+        }*/
+        //2.1读取文章数据 拿到当前likeCount或者favoriteCount
+        //2.2 给数据+1更新 5-> 7->8 安全隐患 线程肯定不安全.
     }
 }
