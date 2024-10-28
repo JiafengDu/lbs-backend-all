@@ -181,6 +181,11 @@ public class ActivityService {
             log.info("活动:{},绑定图片urls:{}",po.getId(),urls);
         }
         vo.setImgPics(urls);
+    }
 
+    //给消息消费者 补充一个方法 利用店铺id 查询活动id 本来
+    //一个店铺可以绑定多个活动 List<ActivityPO> 数组 每个活动 又绑定了优惠券,封装好几个UserCouponsParam
+    public List<ActivityPO> getActivityByShopId(Integer shopId){
+        return activityRepository.getActivityByShopId(shopId);
     }
 }

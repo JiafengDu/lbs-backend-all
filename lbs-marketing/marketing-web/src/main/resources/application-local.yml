@@ -1,5 +1,10 @@
-#本地环境 数据库 redis nacos es rabbitmq
 spring:
+  #rabbit
+  rabbitmq:
+    addresses: localhost:5672
+    username: guest
+    password: guest
+    virtual-host: /
   cloud:
     nacos:
       discovery:

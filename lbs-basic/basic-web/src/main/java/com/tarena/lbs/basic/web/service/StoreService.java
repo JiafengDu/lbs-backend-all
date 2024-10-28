@@ -9,11 +9,15 @@ import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.repository.StoreRepository;
+import com.tarena.lbs.basic.web.source.BasicOutputSource;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
+import com.tarena.lbs.pojo.basic.entity.StoreSearchEntity;
+import com.tarena.lbs.pojo.basic.event.LocationEvent;
 import com.tarena.lbs.pojo.basic.param.StoreParam;
+import com.tarena.lbs.pojo.basic.param.UserLocationParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.po.StorePO;
@@ -25,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -41,6 +47,8 @@ public class StoreService {
     private AdminRepository adminRepository;
     @Autowired
     private BusinessRepository businessRepository;
+    @Autowired
+    private BasicOutputSource outputSource;
     @DubboReference
     private AttachApi attachApi;
     public PageResult<StoreVO> pageList(StoreQuery query) throws BusinessException {
@@ -218,5 +226,30 @@ public class StoreService {
         }
         voPage.setObjects(vos);
         return voPage;
+    }
+
+    public void location(UserLocationParam param) throws BusinessException {
+        //1.解析认证拿到userId
+        Integer userId=getUserId();
+        //2.调用仓储层 查询定位中心点5公里|10公里|20公里的店铺 最多5个 size=5
+        List<StoreSearchEntity> stores=storeRepository.getNearStores(param.getLatitude(),param.getLongitude(),50d);
+        //3.定义组织消息对象 使用stream发送到目标
+        if (CollectionUtils.isNotEmpty(stores)){
+            stores.forEach(store->{
+                //组织消息
+                LocationEvent event=new LocationEvent();
+                event.setUserId(userId);
+                event.setStoreId(store.getId());
+                //将消息发送
+                Message<LocationEvent> messge = MessageBuilder.withPayload(event).build();
+                outputSource.getStoreLocationOutput().send(messge);
+            });
+        }
+    }
+
+    private Integer getUserId() throws BusinessException {
+        UserPrinciple userPrinciple = AuthenticationContextUtils.get();
+        Asserts.isTrue(userPrinciple==null,new BusinessException("-2","用户认证解析失败"));
+        return userPrinciple.getId();
     }
 }

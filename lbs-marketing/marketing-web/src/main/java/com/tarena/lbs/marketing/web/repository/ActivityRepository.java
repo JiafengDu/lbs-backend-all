@@ -26,4 +26,10 @@ public class ActivityRepository {
     public ActivityPO getActivityById(Integer activityId) {
         return activityMapper.selectById(activityId);
     }
+
+    public List<ActivityPO> getActivityByShopId(Integer shopId) {
+        //select * from activity where FIND_IN_SET(#{shopId},shop_ids)
+        //入参 3号店铺 有个活动绑定了 1,3,5 命中 绑定 3,6,9 命中
+        return activityMapper.selectActivitiesByShopId(shopId);
+    }
 }
