@@ -22,6 +22,8 @@
         <module>lbs-article</module>
         <module>lbs-marketing</module>
         <module>lbs-stock</module>
+        <module>untitled</module>
+        <module>lbs-basic</module>
     </modules>
 
     <properties>
