@@ -39,18 +39,21 @@ insert  into `lbs_admin`(`id`,`account_phone`,`account_password`,`nickname`,`ema
 
 /*Table structure for table `lbs_area` */
 
+insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (302,227,'140800','0359','运城市',2,0,0);
+insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (339,333,'141024','0357','洪洞县',3,0,0);
+insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (340,333,'141025','0357','古县',3,0,0);
 DROP TABLE IF EXISTS `lbs_area`;
 
 CREATE TABLE `lbs_area` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `parent_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '父id',
-  `ad_code` varchar(50) DEFAULT NULL COMMENT '地址编码',
-  `city_code` varchar(50) DEFAULT NULL COMMENT '城市编码',
-  `name` varchar(50) DEFAULT NULL COMMENT '省/直辖市/市/区名称',
-  `depth` int(11) DEFAULT '1' COMMENT '1:省2:市3:区',
-  `is_delete` int(11) NOT NULL DEFAULT '0' COMMENT '0:未删除1:已删除',
-  `is_municipality` int(11) NOT NULL DEFAULT '0' COMMENT '是否是直辖市 1:直辖市，0：其他',
-  PRIMARY KEY (`id`)
+                            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                            `parent_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '父id',
+                            `ad_code` varchar(50) DEFAULT NULL COMMENT '地址编码',
+                            `city_code` varchar(50) DEFAULT NULL COMMENT '城市编码',
+                            `name` varchar(50) DEFAULT NULL COMMENT '省/直辖市/市/区名称',
+                            `depth` int(11) DEFAULT '1' COMMENT '1:省2:市3:区',
+                            `is_delete` int(11) NOT NULL DEFAULT '0' COMMENT '0:未删除1:已删除',
+                            `is_municipality` int(11) NOT NULL DEFAULT '0' COMMENT '是否是直辖市 1:直辖市，0：其他',
+                            PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3523 DEFAULT CHARSET=utf8mb4 COMMENT='省市区';
 
 /*Data for the table `lbs_area` */
@@ -356,7 +359,6 @@ insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`i
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (299,289,'140728','0354','平遥县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (300,289,'140729','0354','灵石县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (301,289,'140781','0354','介休市',3,0,0);
-insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (302,227,'140800','0359','运城市',2,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (303,302,'140801','0359','运城市市辖区',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (304,302,'140802','0359','盐湖区',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (305,302,'140821','0359','临猗县',3,0,0);
@@ -393,8 +395,6 @@ insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`i
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (336,333,'141021','0357','曲沃县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (337,333,'141022','0357','翼城县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (338,333,'141023','0357','襄汾县',3,0,0);
-insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (339,333,'141024','0357','洪洞县',3,0,0);
-insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (340,333,'141025','0357','古县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (341,333,'141026','0357','安泽县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (342,333,'141027','0357','浮山县',3,0,0);
 insert  into `lbs_area`(`id`,`parent_id`,`ad_code`,`city_code`,`name`,`depth`,`is_delete`,`is_municipality`) values (343,333,'141028','0357','吉县',3,0,0);
