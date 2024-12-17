@@ -39,5 +39,9 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.tarena.lbs</groupId>
+            <artifactId>lbs-pojo</artifactId>
+        </dependency>
     </dependencies>
 </project>
