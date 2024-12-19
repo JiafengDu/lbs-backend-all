@@ -43,7 +43,7 @@ public class LoginService {
         return new LoginVO();
     }
 
-    private void matchPassword(String password, String accountPassword) {
+    private void matchPassword(String password, String accountPassword) throws BusinessException {
         // check if empty, then equals
         // we can also use other, like StringUtils
         boolean equals = StringUtils.equals(password, accountPassword);
