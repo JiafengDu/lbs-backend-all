@@ -1,5 +1,6 @@
 package com.tarena.lbs.basic.web.controller;
 
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.basic.web.service.LoginService;
 import com.tarena.lbs.pojo.passport.param.AdminLoginParam;
@@ -13,8 +14,8 @@ public class LoginController {
     @Autowired
     private com.tarena.lbs.basic.web.service.LoginService LoginService;
     @PostMapping("/passport/admin/login")
-    public Result<LoginVO> login(AdminLoginParam param) {
-        LoginVO vo = loginService.doLogin(param);
+    public Result<LoginVO> login(AdminLoginParam param) throws BusinessException {
+        LoginVO vo = LoginService.doLogin(param);
         return new Result<>(vo);
     }
 }
