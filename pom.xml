@@ -19,12 +19,6 @@
         <module>lbs-attach</module>
         <module>lbs-basic</module>
         <module>lbs-gateway</module>
-        <module>lbs-article</module>
-        <module>lbs-marketing</module>
-        <module>lbs-stock</module>
-        <module>untitled</module>
-        <module>lbs-basic</module>
-        <module>lbs-gateway</module>
     </modules>
 
     <properties>
