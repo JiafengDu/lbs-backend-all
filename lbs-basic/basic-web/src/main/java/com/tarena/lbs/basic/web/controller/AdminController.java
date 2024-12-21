@@ -20,13 +20,8 @@ public class AdminController {
     private JwtEncoder<UserPrinciple> jwtEncoder;
 
     @GetMapping("/admin/basic/role/detail")
-    public Result<AdminVO> detail(@RequestHeader("Authorization") String jwt) throws BusinessException {
-        // 1. get Authorization from header
-        // 2. decode jwt token, get userPrinciple id nickname roles
-        UserPrinciple userPrinciple = jwtEncoder.getLoginFromToken(jwt, UserPrinciple.class);
-        // 3. get adminId from jwt token
-        Integer id = userPrinciple.getId();
-        AdminVO vo = adminService.detail(id);
+    public Result<AdminVO> detail() throws BusinessException {
+        AdminVO vo = adminService.detail();
         return new Result(vo);
     }
 }
