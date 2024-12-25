@@ -8,12 +8,12 @@ import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Nodes.collect;
-
+@Service
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
