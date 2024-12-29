@@ -14,9 +14,8 @@ public class BusinessCategoryController {
     @Autowired
     private BusinessCategoryService businessCategoryService;
     @GetMapping("/admin/basic/business/category/list")
-    public Result<List<BusinessCategoryVO>> list() {
-        List<BusinessCategoryVO> voList = businessCategoryService.list();
+    public Result<List<BusinessCategoryVO>> allCategories() {
+        List<BusinessCategoryVO> voList = businessCategoryService.allCategories();
         return new Result<>(voList);
     }
-
 }

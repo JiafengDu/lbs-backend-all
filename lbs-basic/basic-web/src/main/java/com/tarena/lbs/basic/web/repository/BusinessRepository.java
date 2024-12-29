@@ -74,4 +74,14 @@ public class BusinessRepository {
         }
         return queryWrapper;
     }
+
+    public void save(BusinessPO po) {
+        businessMapper.insert(po);
+    }
+
+    public Long countBusinessName(String businessName) {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        queryWrapper.eq("businessName", businessName);
+        return businessMapper.selectCount(queryWrapper);
+    }
 }

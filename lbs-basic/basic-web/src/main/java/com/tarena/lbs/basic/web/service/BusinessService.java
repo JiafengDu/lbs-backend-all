@@ -2,19 +2,28 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.tarena.lbs.base.common.utils.Asserts;
+import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
+import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
+import com.tarena.lbs.common.passport.enums.Roles;
+import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
@@ -60,5 +69,37 @@ public class BusinessService {
 //        voPages.setTotal(total);
 //        voPages.setObjects(vos);
 //        return voPages;
+    }
+
+    public void save(BusinessParam param) throws BusinessException {
+        checkRole(Roles.ADMIN);
+        Integer id = saveBusiness(param);
+        bindPictures(id, param);
+    }
+
+    private void checkRole(Roles roles) throws BusinessException {
+        UserPrinciple userPrinciple = AuthenticationContextUtils.getPrinciple();
+        Asserts.isTrue(userPrinciple==null, new BusinessException("-2", "user authentication failed, no user info in request"));
+        Roles loginRole = userPrinciple.getRole();
+        Asserts.isTrue(loginRole.equals(roles), new BusinessException("-2", "user doesn't have the role to be authorized"));
+    }
+
+    private Integer saveBusiness(BusinessParam param) throws BusinessException {
+        // 1. use param to get businessName and get count
+        String businessName = param.getBusinessName();
+        Long count = businessRepository.countBusinessName(businessName);
+        // 2. throw exception if business already exists
+        Asserts.isTrue(count>0, new BusinessException("-2", "Business already exists"));
+        // 3. else initialize a po object and save
+        // 3.1 copy properties first
+        BusinessPO po = new BusinessPO();
+        BeanUtils.copyProperties(param, po);
+        // 3.2 set entryTime, businessStatus, remark
+        po.setEntryTime(new Date());
+        po.setBusinessStatus(2); // 1 pending, 2 passed, 3 rejected
+        po.setAuditRemarks("passed without going through the process manually");
+        // the id of po is empty at this time
+        businessRepository.save(po);
+        return po.getId();
     }
 }
