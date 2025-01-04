@@ -2,13 +2,16 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.tarena.lbs.attach.api.AttachApi;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
+import com.tarena.lbs.basic.web.constant.BusinessTypes;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
@@ -18,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
+    private AttachApi attachApi;
     public PageResult<BusinessVO> pageList(BusinessQuery query) {
         // 1. initialize voPages
         PageResult<BusinessVO> voPages = new PageResult<>();
@@ -75,6 +80,33 @@ public class BusinessService {
         checkRole(Roles.ADMIN);
         Integer id = saveBusiness(param);
         bindPictures(id, param);
+    }
+
+    private void bindPictures(Integer id, BusinessParam param) {
+        List<PicUpdateParam> picParams = new ArrayList<>();
+
+        PicUpdateParam licenseParam = new PicUpdateParam();
+        licenseParam.setBusinessType(BusinessTypes.BIZ_LICENSE);
+        licenseParam.setBusinessId(id);
+        String licenseUrl = param.getBusinessLicense();
+        licenseParam.setFileUuid(getFileUuidFromUrl(licenseUrl));
+
+        PicUpdateParam logoParam = new PicUpdateParam();
+        logoParam.setBusinessType(BusinessTypes.BIZ_LOGO);
+        logoParam.setBusinessId(id);
+        String logoUrl = param.getBusinessLogo();
+        logoParam.setFileUuid(getFileUuidFromUrl(logoUrl));
+
+        picParams.add(licenseParam);
+        picParams.add(logoParam);
+        boolean result = attachApi.batchUpdateBusiness(picParams);
+    }
+
+    private String getFileUuidFromUrl(String url) {
+        // http://localhost:9081/static/34j5kw4tjkkewj4.png
+        String fileUuid = url.split("/")[4];
+        log.info("get current file: {} uuid: {}", url, fileUuid);
+        return fileUuid;
     }
 
     private void checkRole(Roles roles) throws BusinessException {

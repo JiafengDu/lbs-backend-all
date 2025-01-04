@@ -20,6 +20,10 @@
     <dependencies>
         <dependency>
             <groupId>com.tarena.lbs</groupId>
+            <artifactId>attach-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.tarena.lbs</groupId>
             <artifactId>basic-api</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
