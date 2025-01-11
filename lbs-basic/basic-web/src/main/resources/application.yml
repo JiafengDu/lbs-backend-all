@@ -13,3 +13,15 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
   mapper-locations: classpath:mapper/*.xml
+# dubbo
+dubbo:
+  application:
+    name: ${spring.application.name}
+    qos-enable: false
+  registry:
+    address: nacos://${spring.cloud.nacos.discovery.server-addr}
+  protocol:
+    name: dubbo
+    port: -1
+  consumer:
+    check: false
