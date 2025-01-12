@@ -21,6 +21,7 @@ import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,14 +78,14 @@ public class BusinessService {
 //        voPages.setObjects(vos);
 //        return voPages;
     }
-
+    @Transactional(rollbackFor=Exception.class)
     public void save(BusinessParam param) throws BusinessException {
         checkRole(Roles.ADMIN);
         Integer id = saveBusiness(param);
         bindPictures(id, param);
     }
 
-    private void bindPictures(Integer id, BusinessParam param) {
+    private void bindPictures(Integer id, BusinessParam param) throws BusinessException {
         List<PicUpdateParam> picParams = new ArrayList<>();
 
         PicUpdateParam licenseParam = new PicUpdateParam();
@@ -102,6 +103,9 @@ public class BusinessService {
         picParams.add(licenseParam);
         picParams.add(logoParam);
         boolean result = attachApi.batchUpdateBusiness(picParams);
+        if (!result) {
+            throw new BusinessException("-2", "failed to bind pictures");
+        }
     }
 
     private String getFileUuidFromUrl(String url) {

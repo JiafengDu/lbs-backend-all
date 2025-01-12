@@ -1,15 +1,22 @@
 package com.tarena.lbs.basic.web.service;
 
+import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.github.pagehelper.PageInfo;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
+import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
+import com.tarena.lbs.pojo.basic.query.AdminQuery;
 import com.tarena.lbs.pojo.basic.vo.AdminVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
@@ -29,5 +36,23 @@ public class AdminService {
             BeanUtils.copyProperties(po, vo);
         }
         return vo;
+    }
+
+    public PageResult<AdminVO> pageList(AdminQuery query) {
+        PageResult<AdminVO> voPages = new PageResult<>();
+        PageInfo<AdminPO> pageInfo = adminRepository.getPages(query);
+        voPages.setPageNo(pageInfo.getPageNum());
+        voPages.setPageSize(pageInfo.getPageSize());
+        voPages.setTotal(pageInfo.getTotal());
+        List<AdminVO> vos = null;
+        if (CollectionUtils.isNotEmpty(pageInfo.getList())) {
+            vos = pageInfo.getList().stream().map(po -> {
+                AdminVO vo = new AdminVO();
+                BeanUtils.copyProperties(po, vo);
+                return vo;
+            }).collect(Collectors.toList());
+        }
+        voPages.setObjects(vos);
+        return voPages;
     }
 }
