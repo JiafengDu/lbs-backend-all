@@ -45,4 +45,14 @@ public class AdminRepository {
         }
         return queryWrapper;
     }
+
+    public Long countByPhone(String accountPhone) {
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("account_phone", accountPhone);
+        return adminMapper.selectCount(queryWrapper);
+    }
+
+    public void save(AdminPO po) {
+        adminMapper.insert(po);
+    }
 }

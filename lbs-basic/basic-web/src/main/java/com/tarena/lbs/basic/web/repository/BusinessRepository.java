@@ -84,4 +84,8 @@ public class BusinessRepository {
         queryWrapper.eq("businessName", businessName);
         return businessMapper.selectCount(queryWrapper);
     }
+
+    public BusinessPO getBusinessById(Integer businessId) {
+        return businessMapper.selectById(businessId);
+    }
 }
