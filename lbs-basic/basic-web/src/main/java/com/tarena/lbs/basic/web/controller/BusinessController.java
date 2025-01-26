@@ -17,7 +17,7 @@ public class BusinessController {
     @Autowired
     private BusinessService businessService;
     @GetMapping("/admin/basic/business/info/list")
-    public Result<PageResult<BusinessVO>> pageList(BusinessQuery query) {
+    public Result<PageResult<BusinessVO>> pageList(BusinessQuery query) throws BusinessException {
         PageResult<BusinessVO> voPages = businessService.pageList(query);
         return new Result<>(voPages);
     }

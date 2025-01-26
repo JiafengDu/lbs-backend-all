@@ -7,12 +7,14 @@ import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.constant.BusinessTypes;
+import com.tarena.lbs.basic.web.repository.AdminRepository;
 import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
 import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.BusinessParam;
+import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.query.BusinessQuery;
 import com.tarena.lbs.pojo.basic.vo.BusinessVO;
@@ -33,9 +35,30 @@ import java.util.stream.Collectors;
 public class BusinessService {
     @Autowired
     private BusinessRepository businessRepository;
+    @Autowired
+    private AdminRepository adminRepository;;
     @DubboReference
     private AttachApi attachApi;
-    public PageResult<BusinessVO> pageList(BusinessQuery query) {
+
+    public PageResult<BusinessVO> pageList(BusinessQuery query) throws BusinessException {
+        UserPrinciple userPrinciple = getUserPrinciple();
+        Roles role = userPrinciple.getRole();
+        if (role == Roles.SHOP) {
+            Integer adminId = userPrinciple.getId();
+            AdminPO adminPO = adminRepository.getAdminById(adminId);
+            Asserts.isTrue(adminPO==null, new BusinessException("-2", "business doesn't exist anymore"));
+            query.setBusinessId(adminPO.getBusinessId());
+        }
+        return doPageList(query);
+    }
+
+    private UserPrinciple getUserPrinciple() throws BusinessException {
+        UserPrinciple userPrinciple = AuthenticationContextUtils.getPrinciple();
+        Asserts.isTrue(userPrinciple==null, new BusinessException("-2", "user authentication failed"));
+        return userPrinciple;
+    }
+
+    public PageResult<BusinessVO> doPageList(BusinessQuery query) {
         // 1. initialize voPages
         PageResult<BusinessVO> voPages = new PageResult<>();
         // 2. use PageHelper
