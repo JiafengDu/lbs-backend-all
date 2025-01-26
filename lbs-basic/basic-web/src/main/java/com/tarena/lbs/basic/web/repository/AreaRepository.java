@@ -19,4 +19,5 @@ public class AreaRepository {
         queryWrapper.eq("parent_id", parentId);
         return areaMapper.selectList(queryWrapper);
     }
+
 }
