@@ -6,11 +6,14 @@ import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.repository.AdminRepository;
+import com.tarena.lbs.basic.web.repository.BusinessRepository;
 import com.tarena.lbs.basic.web.repository.StoreRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.basic.param.StoreParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
+import com.tarena.lbs.pojo.basic.po.BusinessPO;
 import com.tarena.lbs.pojo.basic.po.StorePO;
 import com.tarena.lbs.pojo.basic.query.AdminQuery;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
@@ -21,6 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +35,8 @@ public class StoreService {
     private StoreRepository storeRepository;
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private BusinessRepository businessRepository;
     public PageResult<StoreVO> pageList(StoreQuery query) throws BusinessException {
 
         UserPrinciple userPrinciple = getUserPrinciple();
@@ -67,5 +73,50 @@ public class StoreService {
         }
         voPages.setObjects(vos);
         return voPages;
+    }
+
+    public void save(StoreParam param) throws BusinessException {
+        checkRole(Roles.SHOP);
+        checkBusiness(param.getBusinessId());
+        StorePO storePO = storeParam2PO(param);
+        storeRepository.save(storePO); // TODO
+        bindPicture(param, storePO.getId()); // TODO
+    }
+
+    private void bindPicture(StoreParam param, Integer id) {
+    }
+
+    private StorePO storeParam2PO(StoreParam param) {
+        StorePO storePO = new StorePO();
+        BeanUtils.copyProperties(param, storePO);
+        // status 0, createTime update now
+        storePO.setStoreStatus(0);
+        Date now = new Date();
+        storePO.setCreateTime(now);
+        storePO.setUpdateTime(now);
+        // location
+        storePO.setStoreLongitude(param.getLongitude());
+        storePO.setStoreLatitude(param.getLatitude());
+        // imageId List<String> po String = 1,2,3,4,5
+        List<String> storeImagesIds = param.getStoreImagesIds();
+        String imageIds = "";
+        if (CollectionUtils.isNotEmpty(storeImagesIds)) {
+            imageIds = String.join(",", storeImagesIds);
+        }
+        storePO.setStoreImagesId(imageIds);
+        return storePO;
+        }
+    }
+
+    private void checkBusiness(Integer businessId) throws BusinessException {
+        BusinessPO businessPO = businessRepository.getBusinessById(businessId);
+        Asserts.isTrue(businessPO==null, new BusinessException("-2", "business not found"));
+    }
+
+    private void checkRole(Roles roles) throws BusinessException {
+        UserPrinciple userPrinciple = AuthenticationContextUtils.getPrinciple();
+        Asserts.isTrue(userPrinciple==null, new BusinessException("-2", "user authentication failed, no user info in request"));
+        Roles loginRole = userPrinciple.getRole();
+        Asserts.isTrue(loginRole.equals(roles), new BusinessException("-2", "user doesn't have the role to be authorized"));
     }
 }

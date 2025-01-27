@@ -4,6 +4,7 @@ import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.model.Result;
 import com.tarena.lbs.base.protocol.pager.PageResult;
 import com.tarena.lbs.basic.web.service.StoreService;
+import com.tarena.lbs.pojo.basic.param.StoreParam;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import com.tarena.lbs.pojo.basic.vo.StoreVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,5 +21,12 @@ public class StoreController {
         throws BusinessException {
         PageResult<StoreVO> voPages = storeService.pageList(query);
         return new Result<>(voPages);
+    }
+
+    @PostMapping("/admin/basic/store/add")
+    public Result<Void> save(@RequestBody StoreParam param)
+        throws BusinessException {
+            storeService.save(param);
+            return Result.success();
     }
 }
