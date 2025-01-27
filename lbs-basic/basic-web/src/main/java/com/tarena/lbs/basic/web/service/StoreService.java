@@ -2,6 +2,7 @@ package com.tarena.lbs.basic.web.service;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.github.pagehelper.PageInfo;
+import com.tarena.lbs.attach.api.AttachApi;
 import com.tarena.lbs.base.common.utils.Asserts;
 import com.tarena.lbs.base.protocol.exception.BusinessException;
 import com.tarena.lbs.base.protocol.pager.PageResult;
@@ -11,6 +12,7 @@ import com.tarena.lbs.basic.web.repository.StoreRepository;
 import com.tarena.lbs.basic.web.utils.AuthenticationContextUtils;
 import com.tarena.lbs.common.passport.enums.Roles;
 import com.tarena.lbs.common.passport.principle.UserPrinciple;
+import com.tarena.lbs.pojo.attach.param.PicUpdateParam;
 import com.tarena.lbs.pojo.basic.param.StoreParam;
 import com.tarena.lbs.pojo.basic.po.AdminPO;
 import com.tarena.lbs.pojo.basic.po.BusinessPO;
@@ -20,10 +22,12 @@ import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import com.tarena.lbs.pojo.basic.vo.AdminVO;
 import com.tarena.lbs.pojo.basic.vo.StoreVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +41,9 @@ public class StoreService {
     private AdminRepository adminRepository;
     @Autowired
     private BusinessRepository businessRepository;
+    @DubboReference
+    private AttachApi attachApi;
+
     public PageResult<StoreVO> pageList(StoreQuery query) throws BusinessException {
 
         UserPrinciple userPrinciple = getUserPrinciple();
@@ -84,6 +91,24 @@ public class StoreService {
     }
 
     private void bindPicture(StoreParam param, Integer id) {
+        List<PicUpdateParam> picParams = new ArrayList<>();
+        PicUpdateParam logoParam = new PicUpdateParam();
+        logoParam.setBusinessId(id);
+        logoParam.setBusinessType(300);
+        logoParam.setId(Integer.valueOf(param.getStoreLogo()));
+        picParams.add(logoParam);
+
+        List<String> storeImagesIds = param.getStoreImagesIds();
+        List<PicUpdateParam> storeImagesParams =
+                storeImagesIds.stream().map(storeImageId -> {
+                    PicUpdateParam storeImageParam = new PicUpdateParam();
+                    storeImageParam.setBusinessType(400);
+                    storeImageParam.setBusinessId(id);
+                    storeImageParam.setId(Integer.valueOf(storeImageId));
+                    return storeImageParam;
+                }).collect(Collectors.toList());
+        picParams.addAll(storeImagesParams);
+        boolean result = attachApi.batchUpdateBusiness(picParams);
     }
 
     private StorePO storeParam2PO(StoreParam param) {
@@ -106,7 +131,6 @@ public class StoreService {
         storePO.setStoreImagesId(imageIds);
         return storePO;
         }
-    }
 
     private void checkBusiness(Integer businessId) throws BusinessException {
         BusinessPO businessPO = businessRepository.getBusinessById(businessId);

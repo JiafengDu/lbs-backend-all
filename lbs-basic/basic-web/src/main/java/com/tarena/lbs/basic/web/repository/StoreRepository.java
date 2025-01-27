@@ -8,6 +8,7 @@ import com.tarena.lbs.pojo.basic.po.StorePO;
 import com.tarena.lbs.pojo.basic.query.StoreQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,8 +26,10 @@ public class StoreRepository {
         List<StorePO> pos = storeMapper.selectList(queryWrapper);
         return new PageInfo<>(pos);
     }
-
+    @Transactional(rollbackFor = Exception.class)
     public void save(StorePO storePO) {
-
+        // use mapper to save PO to db
+        storeMapper.insert(storePO);
+        //TODO save storeId and location to ES
     }
 }
